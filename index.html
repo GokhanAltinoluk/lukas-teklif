@@ -405,6 +405,53 @@ body {
   transform: translateX(-50%) translateY(0);
 }
 
+/* ─── Clause Selector ────────────────────── */
+.clauses-list { display:flex; flex-direction:column; gap:8px; }
+
+.clause {
+  display:flex; align-items:flex-start; gap:10px;
+  padding:10px 12px; border-radius:10px;
+  background:var(--bg-elev); border:1px solid var(--border);
+  transition:opacity .15s;
+}
+.clause--off { opacity:.38; }
+.clause--off .pill-toggle { pointer-events:none; }
+
+.clause__check {
+  flex-shrink:0; margin-top:2px;
+  width:20px; height:20px; border-radius:50%;
+  border:1.5px solid var(--border); background:transparent;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:background .15s, border-color .15s;
+}
+.clause--on .clause__check {
+  background:var(--text-1); border-color:var(--text-1);
+}
+.clause__check svg { display:none; }
+.clause--on .clause__check svg { display:block; }
+
+.clause__text {
+  font-size:.8125rem; line-height:1.7; color:var(--text-1);
+  flex:1; word-break:break-word;
+}
+
+.pill-toggle {
+  display:inline-block; vertical-align:baseline;
+  appearance:none; -webkit-appearance:none;
+  background-color:var(--text-1);
+  color:#F7F7F9;
+  font-size:.75rem; font-family:inherit; font-weight:500;
+  border:none; border-radius:999px;
+  padding:1px 22px 1px 9px;
+  cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' viewBox='0 0 10 6'%3E%3Cpath stroke='%23F7F7F9' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 7px center;
+  line-height:1.6;
+  outline:none;
+}
+.pill-toggle:focus { box-shadow:0 0 0 2px var(--accent); }
+
 /* ─── Responsive ─────────────────────────── */
 @media (max-width: 460px) {
   .items-head,
@@ -766,10 +813,11 @@ body {
   <section>
     <div class="section__label">Notlar &amp; Koşullar</div>
     <div class="card">
-      <div class="field">
-        <label class="field__label" for="f-notes">Not (İsteğe Bağlı)</label>
+      <div class="clauses-list" id="js-clauses"></div>
+      <div class="field" style="margin-top:14px">
+        <label class="field__label" for="f-notes">Ek Not (İsteğe Bağlı)</label>
         <textarea id="f-notes" class="field__input field__input--textarea"
-          placeholder="Ödeme koşulları, teslimat detayları, özel notlar…"></textarea>
+          placeholder="Standart maddeler dışında belirtmek istediğiniz notlar…"></textarea>
       </div>
     </div>
   </section>
@@ -930,6 +978,46 @@ let items  = [];
 let nextId = 1;
 let quoteNum = '';
 
+const clauses = [
+  { id:'c1', on:true, parts:[
+    { t:'Hazırlanmış olan bu teklife konu işlerin tamamını ' },
+    { sel:'usul', opts:['Birim Fiyat','Anahtar Teslim Götürü Bedel'] },
+    { t:' usulüne göre yapmayı taahhüt ederiz.' }
+  ]},
+  { id:'c2', on:true, parts:[
+    { t:'Teklif fiyatımız; sadece ' },
+    { sel:'kapsam', opts:['işçilik hizmetlerini','Malzeme ve işçilik hizmetlerini','malzeme fiyatını'] },
+    { t:' kapsar.' }
+  ]},
+  { id:'c3', on:true, parts:[
+    { t:'Teklif fiyatımızda; İşçilik hizmetinin sağlanması için kullanılacak el aletleri ' },
+    { sel:'el', opts:['tarafımıza','tarafınıza'] },
+    { t:' aittir. İşin yapılabilmesi için kullanılacak iskele ' },
+    { sel:'iskele', opts:['tarafınıza','tarafımıza'] },
+    { t:' aittir.' }
+  ]},
+  { id:'c4', on:true, parts:[
+    { t:"Tüm personelin puantaja göre SGK'sı, İSG, " },
+    { sel:'sgk', opts:['tarafınıza','tarafımıza'] },
+    { t:' aittir.' }
+  ]},
+  { id:'c5', on:true, parts:[
+    { t:'Yeme-İçme ve barınma ' },
+    { sel:'yeme', opts:['tarafınıza','tarafımıza'] },
+    { t:' aittir.' }
+  ]},
+  { id:'c6', on:true, parts:[
+    { t:'Şantiye sahasında kullanılacak tüm elektrik ve su giderleri ' },
+    { sel:'elektrik', opts:['tarafınıza','tarafımıza'] },
+    { t:' aittir.' }
+  ]},
+  { id:'c7',  on:true, fixed:'Ödeme şekli; karşılıklı görüşülecektir.' },
+  { id:'c8',  on:true, fixed:'Sözlü mutabakata varılmasından itibaren en geç 3 iş günü içerisinde yazılı sözleşme imzalanacaktır.' },
+  { id:'c9',  on:true, fixed:'Sözleşme imzalanmasından itibaren 7 iş günü içinde işe başlanacaktır.' },
+  { id:'c10', on:true, fixed:'İş başlangıcı yapılabilmesi için tüm personel bilgisi 1 iş günü öncesi tarafınıza yazılı bildirilecektir.' }
+];
+const choice = {};
+
 /* ═══════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════ */
@@ -952,6 +1040,9 @@ function init() {
 
   // Add first empty row
   addItem();
+
+  // Render contract clauses
+  renderClauses();
 
   // Icons
   lucide.createIcons();
@@ -1004,6 +1095,52 @@ function renderItems() {
       </button>`;
     wrap.appendChild(row);
   });
+}
+
+/* ═══════════════════════════════════════════
+   CLAUSES
+═══════════════════════════════════════════ */
+function clauseSentence(c) {
+  if (c.fixed) return esc(c.fixed);
+  return c.parts.map(p => {
+    if (p.t !== undefined) return esc(p.t);
+    const cur = choice[p.sel] ?? p.opts[0];
+    const opts = p.opts.map(o =>
+      `<option value="${esc(o)}"${o === cur ? ' selected' : ''}>${esc(o)}</option>`
+    ).join('');
+    return `<select class="pill-toggle" onchange="setChoice('${p.sel}', this.value)">${opts}</select>`;
+  }).join('');
+}
+
+function renderClauses() {
+  const wrap = document.getElementById('js-clauses');
+  wrap.innerHTML = '';
+  clauses.forEach(c => {
+    const row = document.createElement('div');
+    row.className = 'clause ' + (c.on ? 'clause--on' : 'clause--off');
+    row.id = `clause-${c.id}`;
+    row.innerHTML = `
+      <div class="clause__check" onclick="toggleClause('${c.id}')">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+             stroke="#F7F7F9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <div class="clause__text">${clauseSentence(c)}</div>`;
+    wrap.appendChild(row);
+  });
+}
+
+function toggleClause(id) {
+  const c = clauses.find(x => x.id === id);
+  if (!c) return;
+  c.on = !c.on;
+  const row = document.getElementById(`clause-${id}`);
+  if (row) row.className = 'clause ' + (c.on ? 'clause--on' : 'clause--off');
+}
+
+function setChoice(key, val) {
+  choice[key] = val;
 }
 
 /* ═══════════════════════════════════════════
@@ -1093,9 +1230,21 @@ function populatePDF() {
 
   /* Notes */
   const notesSec = document.getElementById('p-notes-sec');
-  if (notes) {
+  const lines = clauses
+    .filter(c => c.on)
+    .map(c => {
+      if (c.fixed) return c.fixed;
+      return c.parts.map(p => {
+        if (p.t !== undefined) return p.t;
+        return choice[p.sel] ?? p.opts[0];
+      }).join('');
+    });
+  if (notes) lines.push(notes);
+
+  if (lines.length) {
     notesSec.style.display = 'block';
-    document.getElementById('p-notes-txt').innerHTML = esc(notes).replace(/\n/g,'<br>');
+    document.getElementById('p-notes-txt').innerHTML =
+      lines.map(l => `<p style="margin:0 0 6px">${esc(l)}</p>`).join('');
   } else {
     notesSec.style.display = 'none';
   }
