@@ -531,17 +531,10 @@ body {
   break-inside: avoid;
 }
 
-/* @media print — preserve layout when user prints natively (Ctrl+P) */
+/* @media print — native Ctrl+P color preservation */
 @media print {
   body { background: #FFFFFF !important; margin: 0 !important; }
-  body > *:not(#pdf-tpl) { display: none !important; }
   #pdf-tpl {
-    position: static !important;
-    left: 0 !important; top: 0 !important;
-    width: 210mm !important;
-    min-height: 297mm !important;
-    margin: 0 !important;
-    box-shadow: none !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -1371,70 +1364,74 @@ async function waitForAssets(root) {
 }
 
 async function generateAndShare() {
-  // Basic validation
   const hasContent = items.some(i => i.desc || i.price > 0);
   if (!hasContent) { showToast('Lütfen en az bir ürün / hizmet ekleyin'); return; }
 
-  const btn = document.getElementById('js-main-btn');
+  const btn         = document.getElementById('js-main-btn');
+  const origBtnHTML = btn.innerHTML;
   btn.disabled = true;
   btn.innerHTML = `<div class="spin-ico"></div><span>Hazırlanıyor…</span>`;
 
   const tpl      = document.getElementById('pdf-tpl');
   const origCss  = tpl.getAttribute('style') || '';
+  const origSX   = window.scrollX;
+  const origSY   = window.scrollY;
   const filename = `lukas-concept-${quoteNum}.pdf`;
 
-  // Full-screen loader overlay — hides the template while it is repositioned for capture
-  const loader = document.createElement('div');
-  loader.style.cssText =
-    'position:fixed;inset:0;background:rgba(247,247,249,.97);z-index:9999;' +
-    'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;';
-  loader.innerHTML =
-    '<div style="width:24px;height:24px;border:2.5px solid rgba(17,17,19,.12);' +
-    'border-top-color:#111113;border-radius:50%;animation:spin .55s linear infinite"></div>' +
-    '<span style="font-family:Inter,-apple-system,sans-serif;font-size:13px;font-weight:500;' +
-    'color:#5C5C61;letter-spacing:-.01em">PDF hazırlanıyor…</span>';
-  document.body.appendChild(loader);
+  // Scroll to (0,0) so capture coordinates are aligned
+  window.scrollTo(0, 0);
 
-  // Move template into the visible area — html2canvas cannot reliably capture far off-screen elements
+  // Position template at document origin with maximum z-index — nothing can overlap it
   tpl.style.cssText =
-    'position:absolute;left:0;top:0;width:794px;min-height:1123px;background:#FFFFFF;' +
-    '-webkit-print-color-adjust:exact;print-color-adjust:exact;';
+    'position:absolute;left:0;top:0;width:794px;min-height:1123px;' +
+    'background:#FFFFFF;z-index:2147483647;margin:0;';
 
   try {
     populatePDF();
-
-    // Wait until fonts, images and layout are fully ready before capture
     await waitForAssets(tpl);
 
-    const opt = {
-      margin:     0,
-      filename,
-      image:      { type: 'jpeg', quality: 0.97 },
-      html2canvas: {
-        scale:           2,
-        useCORS:         true,
-        allowTaint:      true,
-        letterRendering: true,
-        logging:         false,
-        scrollX:         0,
-        scrollY:         0,
-        backgroundColor: '#FFFFFF',
-      },
-      jsPDF: {
-        unit:        'mm',
-        format:      'a4',
-        orientation: 'portrait',
-        compress:    true,
-      },
-      pagebreak: {
-        mode:  ['avoid-all'],
-        avoid: ['tr', '.ph', '.pi-grid', '.pv-banner', '.ptotals-wrap', '.pnotes', '.pfooter'],
-      },
-    };
+    // Direct html2canvas call — bypasses html2pdf wrapper's clone manipulation
+    const canvas = await html2canvas(tpl, {
+      scale:           2,
+      useCORS:         true,
+      allowTaint:      true,
+      letterRendering: true,
+      logging:         false,
+      backgroundColor: '#FFFFFF',
+      scrollX:         0,
+      scrollY:         0,
+      windowWidth:     document.documentElement.clientWidth,
+      windowHeight:    document.documentElement.clientHeight,
+    });
 
-    const pdfBlob = await html2pdf().set(opt).from(tpl).output('blob');
+    if (!canvas || canvas.width === 0 || canvas.height === 0) {
+      throw new Error('Canvas capture boş döndü');
+    }
 
-    // Web Share API
+    // Build PDF with jsPDF directly
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+
+    const pageW  = pdf.internal.pageSize.getWidth();
+    const pageH  = pdf.internal.pageSize.getHeight();
+    const imgW   = pageW;
+    const imgH   = imgW * (canvas.height / canvas.width);
+    const imgData = canvas.toDataURL('image/jpeg', 0.97);
+
+    let remaining = imgH;
+    let yOffset   = 0;
+    pdf.addImage(imgData, 'JPEG', 0, yOffset, imgW, imgH, undefined, 'FAST');
+    remaining -= pageH;
+    while (remaining > 0) {
+      yOffset = -(imgH - remaining);
+      pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, yOffset, imgW, imgH, undefined, 'FAST');
+      remaining -= pageH;
+    }
+
+    const pdfBlob = pdf.output('blob');
+
+    // Share or download
     if (typeof navigator.share === 'function') {
       try {
         const file    = new File([pdfBlob], filename, { type: 'application/pdf' });
@@ -1457,22 +1454,14 @@ async function generateAndShare() {
     }
 
   } catch (err) {
-    console.error(err);
-    showToast('Hata: PDF oluşturulamadı');
+    console.error('PDF hatası:', err);
+    showToast('Hata: ' + (err.message || 'PDF oluşturulamadı'));
   } finally {
     tpl.setAttribute('style', origCss);
-    if (loader.parentNode) loader.parentNode.removeChild(loader);
+    window.scrollTo(origSX, origSY);
+    btn.disabled = false;
+    btn.innerHTML = origBtnHTML;
   }
-
-  btn.disabled = false;
-  btn.innerHTML = `
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-    </svg>
-    <span>PDF Oluştur ve Paylaş</span>`;
 }
 
 function downloadBlob(blob, filename) {
