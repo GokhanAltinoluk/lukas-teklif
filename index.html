@@ -468,7 +468,10 @@ body {
 /* ═══════════════════════════════════════════
    PDF TEMPLATE — rendered off-screen
    ═══════════════════════════════════════════ */
+@page { size: A4 portrait; margin: 0; }
+
 #pdf-tpl {
+  box-sizing: border-box;
   position: absolute;
   left: -9999px; top: 0;
   width: 794px;          /* A4 at 96 dpi */
@@ -479,6 +482,52 @@ body {
   color: #111113;
   padding: 56px 52px 76px;
   -webkit-font-smoothing: antialiased;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  color-adjust: exact;
+}
+#pdf-tpl * {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  color-adjust: exact;
+}
+
+/* Page-break controls — prevent splitting blocks across pages */
+.ph,
+.pi-grid,
+.pv-banner,
+.ptotals-wrap,
+.pnotes,
+.pfooter {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+.pt { page-break-inside: auto; }
+.pt thead { display: table-header-group; }
+.pt tfoot { display: table-footer-group; }
+.pt tr {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+.pnotes p {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+/* @media print — preserve layout when user prints natively (Ctrl+P) */
+@media print {
+  body { background: #FFFFFF !important; margin: 0 !important; }
+  body > *:not(#pdf-tpl) { display: none !important; }
+  #pdf-tpl {
+    position: static !important;
+    left: 0 !important; top: 0 !important;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
 }
 
 /* PDF — Header */
@@ -1253,6 +1302,28 @@ function populatePDF() {
 /* ═══════════════════════════════════════════
    GENERATE & SHARE
 ═══════════════════════════════════════════ */
+async function waitForAssets(root) {
+  // 1) Fonts ready (Inter etc.)
+  if (document.fonts && document.fonts.ready) {
+    try { await document.fonts.ready; } catch (e) { /* ignore */ }
+  }
+
+  // 2) Images fully decoded
+  const imgs = Array.from(root.querySelectorAll('img'));
+  await Promise.all(imgs.map(img => {
+    if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+    return new Promise(resolve => {
+      const done = () => resolve();
+      img.addEventListener('load',  done, { once: true });
+      img.addEventListener('error', done, { once: true });
+      setTimeout(done, 3000); // safety timeout
+    });
+  }));
+
+  // 3) Two animation frames — layout + paint
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+}
+
 async function generateAndShare() {
   // Basic validation
   const hasContent = items.some(i => i.desc || i.price > 0);
@@ -1280,13 +1351,14 @@ async function generateAndShare() {
 
   // Move template into the visible area — html2canvas cannot reliably capture far off-screen elements
   tpl.style.cssText =
-    'position:absolute;left:0;top:0;width:794px;min-height:1123px;background:#FFFFFF;';
-
-  // Wait two animation frames so layout + paint finish before capture
-  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    'position:absolute;left:0;top:0;width:794px;min-height:1123px;background:#FFFFFF;' +
+    '-webkit-print-color-adjust:exact;print-color-adjust:exact;';
 
   try {
     populatePDF();
+
+    // Wait until fonts, images and layout are fully ready before capture
+    await waitForAssets(tpl);
 
     const opt = {
       margin:     0,
@@ -1300,12 +1372,18 @@ async function generateAndShare() {
         logging:         false,
         scrollX:         0,
         scrollY:         0,
+        windowWidth:     794,
+        backgroundColor: '#FFFFFF',
       },
       jsPDF: {
         unit:        'mm',
         format:      'a4',
         orientation: 'portrait',
         compress:    true,
+      },
+      pagebreak: {
+        mode:  ['css', 'legacy'],
+        avoid: ['tr', '.ph', '.pi-grid', '.pv-banner', '.ptotals-wrap', '.pnotes', '.pnotes p', '.pfooter'],
       },
     };
 
