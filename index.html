@@ -1372,7 +1372,6 @@ async function generateAndShare() {
         logging:         false,
         scrollX:         0,
         scrollY:         0,
-        windowWidth:     794,
         backgroundColor: '#FFFFFF',
       },
       jsPDF: {
@@ -1382,8 +1381,8 @@ async function generateAndShare() {
         compress:    true,
       },
       pagebreak: {
-        mode:  ['css', 'legacy'],
-        avoid: ['tr', '.ph', '.pi-grid', '.pv-banner', '.ptotals-wrap', '.pnotes', '.pnotes p', '.pfooter'],
+        mode:  ['avoid-all'],
+        avoid: ['tr', '.ph', '.pi-grid', '.pv-banner', '.ptotals-wrap', '.pnotes', '.pfooter'],
       },
     };
 
