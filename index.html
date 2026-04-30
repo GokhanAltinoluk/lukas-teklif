@@ -94,6 +94,23 @@ body {
   color: var(--text-2);
   letter-spacing: .03em;
 }
+.quote-badge__input {
+  width: 30px;
+  padding: 0 2px;
+  margin: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: var(--text-1);
+  letter-spacing: inherit;
+  text-align: left;
+  outline: none;
+  border-bottom: 1px dashed var(--text-3);
+  cursor: text;
+  transition: border-bottom-color .15s, color .15s;
+}
+.quote-badge__input:hover { border-bottom-color: var(--text-2); }
+.quote-badge__input:focus { border-bottom-color: var(--text-1); color: var(--text-1); }
 
 /* ─── Main ───────────────────────────────── */
 .main {
@@ -782,7 +799,16 @@ body {
     </div>
     <div class="quote-badge">
       <i data-lucide="file-text" style="width:11px;height:11px;flex-shrink:0"></i>
-      <span id="js-quote-num">TKF-001</span>
+      <span id="js-quote-prefix">TKF-</span><input
+        id="js-quote-counter"
+        class="quote-badge__input"
+        type="text"
+        inputmode="numeric"
+        maxlength="3"
+        value="001"
+        onblur="updateQuoteCounter()"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
+        title="Düzenlemek için tıklayın">
     </div>
   </div>
 </header>
@@ -1084,8 +1110,11 @@ function init() {
   const stored   = JSON.parse(localStorage.getItem('lc_qcount') || '{}');
   const count    = stored.date === todayKey ? stored.count + 1 : 1;
   localStorage.setItem('lc_qcount', JSON.stringify({ date: todayKey, count }));
-  quoteNum = `TKF-${y}-${mo}-${d}-${String(count).padStart(3, '0')}`;
-  document.getElementById('js-quote-num').textContent = quoteNum;
+  const prefix   = `TKF-${y}-${mo}-${d}-`;
+  const padded   = String(count).padStart(3, '0');
+  quoteNum = prefix + padded;
+  document.getElementById('js-quote-prefix').textContent = prefix;
+  document.getElementById('js-quote-counter').value      = padded;
 
   // Add first empty row
   addItem();
@@ -1095,6 +1124,23 @@ function init() {
 
   // Icons
   lucide.createIcons();
+}
+
+function updateQuoteCounter() {
+  const inp = document.getElementById('js-quote-counter');
+  const raw = (inp.value || '').replace(/\D/g, '');
+  const num = Math.min(999, Math.max(1, parseInt(raw, 10) || 1));
+  const padded = String(num).padStart(3, '0');
+  inp.value = padded;
+
+  const prefix = document.getElementById('js-quote-prefix').textContent;
+  quoteNum = prefix + padded;
+
+  // Persist so the next page load increments from this number
+  const stored = JSON.parse(localStorage.getItem('lc_qcount') || '{}');
+  if (stored.date) {
+    localStorage.setItem('lc_qcount', JSON.stringify({ date: stored.date, count: num }));
+  }
 }
 
 /* ═══════════════════════════════════════════
