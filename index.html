@@ -201,7 +201,7 @@ body {
 
 .items-head {
   display: grid;
-  grid-template-columns: 1fr 70px 98px 34px;
+  grid-template-columns: 1fr 50px 70px 96px 34px;
   gap: 8px;
   padding: 9px 16px;
   background: var(--surface-2);
@@ -219,7 +219,7 @@ body {
 
 .item-row {
   display: grid;
-  grid-template-columns: 1fr 70px 98px 34px;
+  grid-template-columns: 1fr 50px 70px 96px 34px;
   gap: 8px;
   padding: 10px 16px;
   align-items: center;
@@ -247,6 +247,19 @@ body {
 .item-input--r {
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+.item-select {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-2);
+  background: transparent;
+  border: none; outline: none;
+  width: 100%;
+  -webkit-appearance: none; appearance: none;
+  cursor: pointer;
+  text-align: right;
 }
 
 .item-del {
@@ -473,7 +486,7 @@ body {
 /* ─── Responsive ─────────────────────────── */
 @media (max-width: 460px) {
   .items-head,
-  .item-row { grid-template-columns: 1fr 58px 84px 30px; gap: 5px; }
+  .item-row { grid-template-columns: 1fr 44px 60px 82px 26px; gap: 4px; }
 
   .field--2col { grid-template-columns: 1fr; }
   .field--2col .field:first-child {
@@ -888,6 +901,7 @@ body {
       <div class="items-head">
         <span class="items-head__col">Açıklama</span>
         <span class="items-head__col items-head__col--r">Adet</span>
+        <span class="items-head__col items-head__col--r">Birim</span>
         <span class="items-head__col items-head__col--r">Birim Fiyat</span>
         <span class="items-head__col"></span>
       </div>
@@ -1014,7 +1028,7 @@ body {
       <div class="meta">
         <div class="row">
           <span class="k">HAZIRLAYAN</span>
-          <b>L. KAYA</b><br>
+          <b>G. ALTINOLUK</b><br>
           <span style="color:var(--ink3);font-size:8px;">SR. INTERIOR ARCHITECT</span>
         </div>
         <div class="row" style="margin-top:auto;">
@@ -1229,7 +1243,7 @@ function updateQuoteCounter() {
    ITEMS
 ═══════════════════════════════════════════ */
 function addItem() {
-  items.push({ id: nextId++, desc: '', qty: 1, price: 0 });
+  items.push({ id: nextId++, desc: '', qty: 1, unit: 'ad', price: 0 });
   renderItems();
 }
 
@@ -1261,6 +1275,9 @@ function renderItems() {
       <input class="item-input item-input--r" type="number" min="0" step="0.01"
         placeholder="1" value="${it.qty || ''}"
         oninput="setItem(${it.id},'qty',this.value)">
+      <select class="item-select" onchange="setItem(${it.id},'unit',this.value)">
+        ${['ad','m²','m³','mtül','ton','tane'].map(u => `<option value="${u}"` + (it.unit===u ? ' selected' : '') + `>${u}</option>`).join('')}
+      </select>
       <input class="item-input item-input--r" type="number" min="0" step="0.01"
         placeholder="0,00" value="${it.price || ''}"
         oninput="setItem(${it.id},'price',this.value)">
@@ -1402,7 +1419,7 @@ function populatePDF() {
     row.innerHTML = `
       <div class="code">${code}</div>
       <div><div class="title">${esc(it.desc || '—')}</div></div>
-      <div class="num">${(it.qty || 0).toLocaleString('tr-TR')} <span class="qty-unit">ad</span></div>
+      <div class="num">${(it.qty || 0).toLocaleString('tr-TR')} <span class="qty-unit">${it.unit || 'ad'}</span></div>
       <div class="num muted">${fmt(it.price || 0, cur)}</div>
       <div class="num bold">${fmt(line, cur)}</div>`;
     tbody.appendChild(row);
