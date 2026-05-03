@@ -484,6 +484,15 @@ body {
 .pill-toggle:focus { box-shadow:0 0 0 2px var(--accent); }
 
 /* ─── Responsive ─────────────────────────── */
+/* --- Payment Plan Form --- */
+.pay-steps { display: flex; flex-direction: column; gap: 0; }
+.pay-step { padding: 12px 0; }
+.pay-step + .pay-step { border-top: 1px solid var(--border); }
+.pay-step__hd { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+.pay-step__num { font-size: 9px; font-weight: 700; letter-spacing: .14em; color: var(--text-3); text-transform: uppercase; flex-shrink: 0; }
+.pay-step__pct { width: 60px; font-size: 20px; font-weight: 200; border: none; outline: none; background: transparent; color: #c2410c; font-family: inherit; letter-spacing: -0.02em; padding: 0; }
+.pay-step__pct::placeholder { color: var(--text-3); }
+
 @media (max-width: 460px) {
   .items-head,
   .item-row { grid-template-columns: 1fr 44px 60px 82px 26px; gap: 4px; }
@@ -496,12 +505,13 @@ body {
   .field--2col .field:last-child { border-bottom: none; }
 }
 
-/* ═══════════════════════════════════════════
-   PDF TEMPLATE — rendered off-screen
-   ═══════════════════════════════════════════ */
+/* ==========================================
+   PDF PAGES - rendered off-screen
+   ==========================================
+*/
 @page { size: A4 portrait; margin: 0; }
 
-#pdf-tpl {
+.pdf-pg {
   --paper: #fafaf7;
   --ink:   #0e0e0c;
   --ink2:  #3a3935;
@@ -511,55 +521,37 @@ body {
   --mono:  'JetBrains Mono', monospace;
   --sans:  'Manrope', 'Inter', sans-serif;
   --grid:  rgba(14,14,12,0.06);
-
   box-sizing: border-box;
-  position: absolute;
-  left: -9999px; top: 0;
+  position: absolute; left: -9999px; top: 0;
   width: 794px;
-  min-height: 1123px;
   background: var(--paper);
-  font-family: var(--sans);
-  font-size: 13px;
-  color: var(--ink);
-  overflow: hidden;
+  font-family: var(--sans); font-size: 13px; color: var(--ink);
   background-image:
     linear-gradient(to right, var(--grid) 0.5px, transparent 0.5px),
     linear-gradient(to bottom, var(--grid) 0.5px, transparent 0.5px);
   background-size: 32px 32px;
-  -webkit-print-color-adjust: exact;
-  print-color-adjust: exact;
-  color-adjust: exact;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact;
 }
-#pdf-tpl * {
-  -webkit-print-color-adjust: exact;
-  print-color-adjust: exact;
-  color-adjust: exact;
-  box-sizing: border-box;
+#pdf-p1, #pdf-p3 { height: 1123px; overflow: hidden; }
+#pdf-p2 { min-height: 1123px; overflow: visible; }
+.pdf-pg * {
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  color-adjust: exact; box-sizing: border-box;
 }
 
-/* PDF — Frame & crosshairs */
-#pdf-tpl .frame {
-  position: absolute; inset: 32px;
-  border: 0.75px solid var(--rule);
-  pointer-events: none;
-}
-#pdf-tpl .crosshair {
-  position: absolute; width: 9px; height: 9px;
-}
-#pdf-tpl .crosshair::before,
-#pdf-tpl .crosshair::after {
-  content: ''; position: absolute; background: var(--rule);
-}
-#pdf-tpl .crosshair::before { top: 4.5px; left: 0; right: 0; height: 0.75px; }
-#pdf-tpl .crosshair::after  { left: 4.5px; top: 0; bottom: 0; width: 0.75px; }
-#pdf-tpl .ch-tl { top: 28px; left: 28px; }
-#pdf-tpl .ch-tr { top: 28px; right: 28px; }
-#pdf-tpl .ch-bl { bottom: 28px; left: 28px; }
-#pdf-tpl .ch-br { bottom: 28px; right: 28px; }
+/* PDF - Frame & crosshairs */
+.pdf-pg .frame { position: absolute; inset: 32px; border: 0.75px solid var(--rule); pointer-events: none; }
+.pdf-pg .crosshair { position: absolute; width: 9px; height: 9px; }
+.pdf-pg .crosshair::before, .pdf-pg .crosshair::after { content: ""; position: absolute; background: var(--rule); }
+.pdf-pg .crosshair::before { top: 4.5px; left: 0; right: 0; height: 0.75px; }
+.pdf-pg .crosshair::after  { left: 4.5px; top: 0; bottom: 0; width: 0.75px; }
+.pdf-pg .ch-tl { top: 28px; left: 28px; }
+.pdf-pg .ch-tr { top: 28px; right: 28px; }
+.pdf-pg .ch-bl { bottom: 28px; left: 28px; }
+.pdf-pg .ch-br { bottom: 28px; right: 28px; }
 
-/* PDF — Mono strips */
-#pdf-tpl .strip-top,
-#pdf-tpl .strip-bot {
+/* PDF - Mono strips */
+.pdf-pg .strip-top, .pdf-pg .strip-bot {
   position: absolute; left: 32px; right: 32px; height: 20px;
   background: var(--paper);
   display: flex; align-items: center; justify-content: space-between;
@@ -567,249 +559,101 @@ body {
   font-family: var(--mono); font-size: 8px;
   letter-spacing: 0.16em; color: var(--ink2); text-transform: uppercase;
 }
-#pdf-tpl .strip-top { top: 32px; border-bottom: 0.75px solid var(--rule); }
-#pdf-tpl .strip-bot { bottom: 32px; border-top: 0.75px solid var(--rule); }
+.pdf-pg .strip-top { top: 32px; border-bottom: 0.75px solid var(--rule); }
+.pdf-pg .strip-bot { bottom: 32px; border-top: 0.75px solid var(--rule); }
 
-/* PDF — Body container */
-#pdf-tpl .body {
+/* PDF - Body container */
+.pdf-pg .body {
   position: absolute; top: 52px; left: 32px; right: 32px; bottom: 52px;
-  padding: 16px 20px;
-  display: flex; flex-direction: column; gap: 14px;
+  padding: 16px 22px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+#pdf-p2 .body {
+  position: static;
+  padding: 68px 54px 68px;
 }
 
-#pdf-tpl .label {
-  font-family: var(--mono); font-size: 7.5px;
-  letter-spacing: 0.2em; color: var(--ink3); text-transform: uppercase;
-}
+.pdf-pg .label { font-family: var(--mono); font-size: 7.5px; letter-spacing: 0.2em; color: var(--ink3); text-transform: uppercase; }
+.pdf-pg .label-sm { font-family: var(--mono); font-size: 8px; letter-spacing: 0.18em; color: var(--ink3); text-transform: uppercase; }
 
-/* PDF — Header band */
-#pdf-tpl .header {
-  display: grid; grid-template-columns: 1.1fr 1.4fr 0.8fr;
-  gap: 14px; align-items: stretch;
-}
-#pdf-tpl .header > div {
-  padding: 10px 12px; border: 0.75px solid var(--rule);
-}
-#pdf-tpl .header .num {
-  display: flex; flex-direction: column; justify-content: space-between;
-}
-#pdf-tpl .header .num .big {
-  font-family: var(--sans); font-weight: 200; font-size: 70px;
-  letter-spacing: -0.05em; line-height: 0.85;
-}
-#pdf-tpl .header .num .doc {
-  font-family: var(--mono); font-size: 8px;
-  color: var(--ink2); letter-spacing: 0.1em; margin-top: 6px;
-}
-#pdf-tpl .header .title .t {
-  font-family: var(--sans); font-weight: 300; font-size: 22px;
-  line-height: 1.05; letter-spacing: -0.02em; margin-top: 4px;
-}
-#pdf-tpl .header .title .loc {
-  font-family: var(--mono); font-size: 9px;
-  color: var(--ink2); letter-spacing: 0.06em; margin-top: 6px;
-}
-#pdf-tpl .header .meta {
-  display: flex; flex-direction: column; gap: 6px;
-}
-#pdf-tpl .header .meta .row {
-  font-family: var(--mono); font-size: 9px; line-height: 1.3;
-}
-#pdf-tpl .header .meta .row b { font-weight: 600; }
-#pdf-tpl .header .meta .row .k {
-  color: var(--ink3); letter-spacing: 0.1em; font-size: 7.5px;
-  text-transform: uppercase; display: block;
-}
+/* --- COVER PAGE --- */
+.pdf-pg .cover-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.pdf-pg .big-num { font-family: var(--sans); font-weight: 200; font-size: 240px; line-height: 0.82; letter-spacing: -0.05em; color: var(--ink); }
+.pdf-pg .cover-title { font-family: var(--sans); font-weight: 300; font-size: 30px; line-height: 1.05; letter-spacing: -0.02em; }
+.pdf-pg .cover-loc { font-family: var(--mono); font-size: 10px; color: var(--ink2); margin-top: 3px; letter-spacing: 0.06em; }
+.pdf-pg .spec-grid { margin-top: 20px; border: 0.75px solid var(--rule); display: grid; grid-template-columns: repeat(4, 1fr); }
+.pdf-pg .spec-cell { padding: 12px 14px; }
+.pdf-pg .spec-cell + .spec-cell { border-left: 0.75px solid var(--rule); }
+.pdf-pg .spec-cell .sv { font-family: var(--sans); font-size: 14px; font-weight: 500; margin-top: 5px; line-height: 1.15; }
+.pdf-pg .spec-cell .ssub { font-family: var(--mono); font-size: 8px; color: var(--ink2); margin-top: 3px; letter-spacing: 0.08em; }
+.pdf-pg .cover-foot { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 6px; }
+.pdf-pg .studio-name { font-family: var(--sans); font-weight: 600; font-size: 15px; letter-spacing: 0.14em; margin-top: 5px; }
+.pdf-pg .studio-sub { font-family: var(--mono); font-size: 8px; color: var(--ink3); letter-spacing: 0.2em; margin-top: 2px; }
+.pdf-pg .studio-contact { font-family: var(--mono); font-size: 8.5px; color: var(--ink2); margin-top: 5px; line-height: 1.6; }
+.pdf-pg .prep-name { font-family: var(--sans); font-size: 13px; font-weight: 500; margin-top: 5px; }
+.pdf-pg .prep-role { font-family: var(--mono); font-size: 8px; color: var(--ink3); margin-top: 3px; letter-spacing: 0.12em; }
 
-/* PDF — Parties */
-#pdf-tpl .parties {
-  display: grid; grid-template-columns: 1fr 1fr;
-  border: 0.75px solid var(--rule);
-}
-#pdf-tpl .parties > div { padding: 10px 12px; }
-#pdf-tpl .parties > div + div { border-left: 0.75px solid var(--rule); }
-#pdf-tpl .parties .name {
-  font-family: var(--sans); font-weight: 600; font-size: 13px; margin-top: 4px;
-}
-#pdf-tpl .parties .sub {
-  font-family: var(--mono); font-size: 8.5px;
-  color: var(--ink2); margin-top: 4px; line-height: 1.5;
-}
+/* --- ITEMS PAGE --- */
+.pdf-pg .h-row { display: flex; justify-content: space-between; align-items: flex-end; }
+.pdf-pg .section-title { font-family: var(--sans); font-weight: 300; font-size: 28px; line-height: 1; letter-spacing: -0.02em; }
+.pdf-pg .section-title .muted { color: var(--ink3); }
+.pdf-pg .table { border: 0.75px solid var(--rule); }
+.pdf-pg .thead, .pdf-pg .trow { display: grid; grid-template-columns: 46px 1fr 76px 90px 100px; }
+.pdf-pg .thead { background: var(--ink); color: var(--paper); font-family: var(--mono); font-size: 7.5px; letter-spacing: 0.16em; text-transform: uppercase; }
+.pdf-pg .thead > div { padding: 7px 10px; border-right: 0.75px solid rgba(255,255,255,0.2); }
+.pdf-pg .thead > div:last-child { border-right: none; }
+.pdf-pg .thead .ralign { text-align: right; }
+.pdf-pg .trow { border-bottom: 0.5px solid rgba(14,14,12,0.18); }
+.pdf-pg .trow:last-child { border-bottom: none; }
+.pdf-pg .trow > div { padding: 7px 10px; border-right: 0.5px solid rgba(14,14,12,0.18); }
+.pdf-pg .trow > div:last-child { border-right: none; }
+.pdf-pg .trow .code { font-family: var(--mono); font-size: 9px; color: var(--accent); font-weight: 500; }
+.pdf-pg .trow .title { font-family: var(--sans); font-size: 11px; font-weight: 600; line-height: 1.2; }
+.pdf-pg .trow .num { text-align: right; font-family: var(--mono); font-size: 9.5px; }
+.pdf-pg .trow .num.muted { color: var(--ink2); }
+.pdf-pg .trow .num.bold  { font-weight: 600; }
+.pdf-pg .trow .qty-unit  { color: var(--ink3); font-size: 7.5px; }
+.pdf-pg .totals { border: 0.75px solid var(--rule); display: grid; grid-template-columns: 1fr 1fr 1fr; margin-top: 4px; }
+.pdf-pg .totals > div { padding: 14px 16px; }
+.pdf-pg .totals > div + div { border-left: 0.5px solid rgba(14,14,12,0.18); }
+.pdf-pg .totals > div.last { background: var(--ink); color: var(--paper); }
+.pdf-pg .totals .k { font-family: var(--mono); font-size: 8px; letter-spacing: 0.18em; color: var(--ink3); text-transform: uppercase; }
+.pdf-pg .totals .last .k { color: rgba(250,250,247,0.6); }
+.pdf-pg .totals .v { font-family: var(--sans); font-weight: 400; font-size: 17px; margin-top: 6px; letter-spacing: -0.02em; }
+.pdf-pg .totals .last .v { font-weight: 500; font-size: 21px; }
+.pdf-pg .totals .v .u { font-size: 11px; color: var(--ink3); }
+.pdf-pg .totals .last .v .u { font-size: 13px; color: rgba(250,250,247,0.6); }
 
-/* PDF — Items table */
-#pdf-tpl .table { border: 0.75px solid var(--rule); }
-#pdf-tpl .thead,
-#pdf-tpl .trow {
-  display: grid;
-  grid-template-columns: 38px 1fr 50px 88px 96px;
-}
-#pdf-tpl .thead {
-  background: var(--ink); color: var(--paper);
-  font-family: var(--mono); font-size: 7.5px;
-  letter-spacing: 0.16em; text-transform: uppercase;
-}
-#pdf-tpl .thead > div {
-  padding: 7px 10px;
-  border-right: 0.75px solid rgba(255,255,255,0.2);
-}
-#pdf-tpl .thead > div:last-child { border-right: none; }
-#pdf-tpl .thead .ralign { text-align: right; }
-#pdf-tpl .trow { border-bottom: 0.5px solid rgba(14,14,12,0.18); }
-#pdf-tpl .trow:last-child { border-bottom: none; }
-#pdf-tpl .trow > div {
-  padding: 7px 10px;
-  border-right: 0.5px solid rgba(14,14,12,0.18);
-}
-#pdf-tpl .trow > div:last-child { border-right: none; }
-#pdf-tpl .trow .code {
-  font-family: var(--mono); font-size: 9px;
-  color: var(--accent); font-weight: 500;
-}
-#pdf-tpl .trow .title {
-  font-family: var(--sans); font-size: 11px; font-weight: 600; line-height: 1.2;
-}
-#pdf-tpl .trow .desc {
-  font-family: var(--sans); font-size: 8.5px;
-  color: var(--ink2); margin-top: 2px; line-height: 1.35; font-weight: 300;
-}
-#pdf-tpl .trow .num {
-  text-align: right; font-family: var(--mono); font-size: 9.5px;
-}
-#pdf-tpl .trow .num.muted { color: var(--ink2); }
-#pdf-tpl .trow .num.bold  { font-weight: 600; }
-#pdf-tpl .trow .qty-unit  { color: var(--ink3); font-size: 7.5px; }
+/* --- TERMS PAGE --- */
+.pdf-pg .pay-section { }
+.pdf-pg .pay-grid { margin-top: 8px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.pdf-pg .pay-card { border: 0.75px solid var(--rule); padding: 12px 14px; }
+.pdf-pg .pay-card .step { font-family: var(--mono); font-size: 7.5px; color: var(--ink3); letter-spacing: 0.18em; }
+.pdf-pg .pay-card .stage { font-family: var(--sans); font-weight: 500; font-size: 12px; margin-top: 4px; }
+.pdf-pg .pay-card .when { font-family: var(--mono); font-size: 8.5px; color: var(--ink2); margin-top: 3px; }
+.pdf-pg .pay-card .pct { font-family: var(--sans); font-weight: 200; font-size: 50px; margin-top: 10px; letter-spacing: -0.04em; color: var(--accent); line-height: 0.9; }
+.pdf-pg .two-col { display: grid; grid-template-columns: 1.2fr 1fr; gap: 18px; }
+.pdf-pg .notes { padding-left: 0; list-style: none; margin-top: 8px; }
+.pdf-pg .notes li { display: grid; grid-template-columns: 28px 1fr; gap: 4px; font-family: var(--sans); font-size: 9px; color: var(--ink2); line-height: 1.4; margin-bottom: 5px; }
+.pdf-pg .notes li .n { font-family: var(--mono); font-size: 8px; color: var(--accent); letter-spacing: 0.08em; }
+.pdf-pg .bank-card { margin-top: 8px; border: 0.75px solid var(--rule); padding: 12px; }
+.pdf-pg .bank-card .name { font-family: var(--sans); font-size: 12px; font-weight: 600; }
+.pdf-pg .bank-card .branch { font-family: var(--mono); font-size: 8px; color: var(--ink2); margin-top: 2px; }
+.pdf-pg .bank-card .iban { font-family: var(--mono); font-size: 9px; margin-top: 8px; letter-spacing: 0.04em; word-break: break-all; }
+.pdf-pg .bank-card .vkn { font-family: var(--mono); font-size: 7.5px; color: var(--ink3); margin-top: 5px; letter-spacing: 0.06em; }
+.pdf-pg .sign-row { margin-top: auto; display: grid; grid-template-columns: 1fr 1fr 96px; gap: 14px; align-items: flex-end; padding-bottom: 6px; }
+.pdf-pg .sign-line { height: 36px; border-bottom: 0.75px solid var(--rule); margin-top: 5px; }
+.pdf-pg .sign-name { font-family: var(--sans); font-weight: 500; font-size: 10px; margin-top: 5px; }
+.pdf-pg .qr-box { border: 0.75px solid var(--rule); padding: 4px; background: #fff; }
 
-/* PDF — Bottom row */
-#pdf-tpl .bottom {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
-}
-#pdf-tpl .pay-pack {
-  border: 0.75px solid var(--rule); padding: 10px 12px;
-}
-#pdf-tpl .pay-pack .ttl {
-  font-family: var(--mono); font-size: 7.5px;
-  letter-spacing: 0.2em; color: var(--ink3); text-transform: uppercase;
-}
-#pdf-tpl .pay-pack .grid {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 8px; margin-top: 8px;
-}
-#pdf-tpl .pay-pack .cell .step {
-  font-family: var(--mono); font-size: 7px; color: var(--ink3); letter-spacing: 0.16em;
-}
-#pdf-tpl .pay-pack .cell .pct {
-  font-family: var(--sans); font-weight: 200; font-size: 32px;
-  letter-spacing: -0.04em; color: var(--accent); line-height: 0.9; margin-top: 3px;
-}
-#pdf-tpl .pay-pack .cell .stage {
-  font-family: var(--sans); font-weight: 500; font-size: 10px; margin-top: 4px;
-}
-#pdf-tpl .pay-pack .cell .when {
-  font-family: var(--mono); font-size: 8px; color: var(--ink2); margin-top: 2px;
-}
-#pdf-tpl .total-pack {
-  border: 0.75px solid var(--rule);
-  background: var(--ink); color: var(--paper);
-  padding: 12px 14px;
-  display: flex; flex-direction: column; justify-content: space-between;
-}
-#pdf-tpl .total-pack .row {
-  display: flex; justify-content: space-between; align-items: baseline;
-  font-family: var(--mono); font-size: 10px;
-}
-#pdf-tpl .total-pack .row .k {
-  color: rgba(250,250,247,0.6); font-size: 8px;
-  letter-spacing: 0.18em; text-transform: uppercase;
-}
-#pdf-tpl .total-pack .row + .row { margin-top: 4px; }
-#pdf-tpl .total-pack .grand {
-  margin-top: 10px; padding-top: 10px;
-  border-top: 0.5px solid rgba(250,250,247,0.3);
-}
-#pdf-tpl .total-pack .grand .k {
-  color: rgba(250,250,247,0.6); font-family: var(--mono);
-  font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase;
-}
-#pdf-tpl .total-pack .grand .v {
-  font-family: var(--sans); font-weight: 500; font-size: 30px;
-  margin-top: 4px; letter-spacing: -0.02em;
-}
-#pdf-tpl .total-pack .grand .v .u {
-  font-size: 16px; color: rgba(250,250,247,0.6);
-}
-#pdf-tpl .total-pack .tax-row { display: none; }
-#pdf-tpl .total-pack .tax-row.visible { display: flex; }
+/* PDF - Page-break controls */
+.pdf-pg .thead, .pdf-pg .trow { page-break-inside: avoid; break-inside: avoid; }
 
-/* PDF — Notes + bank */
-#pdf-tpl .nb {
-  display: grid; grid-template-columns: 1.4fr 1fr; gap: 14px;
-}
-#pdf-tpl .notes {
-  padding-left: 0; list-style: none; margin: 6px 0 0 0;
-}
-#pdf-tpl .notes li {
-  display: grid; grid-template-columns: 26px 1fr;
-  gap: 4px; font-family: var(--sans); font-size: 8.5px;
-  color: var(--ink2); line-height: 1.4; margin-bottom: 4px;
-}
-#pdf-tpl .notes li .n {
-  font-family: var(--mono); font-size: 8px;
-  color: var(--accent); letter-spacing: 0.08em;
-}
-#pdf-tpl .bank {
-  padding: 10px 12px; border: 0.75px solid var(--rule);
-}
-#pdf-tpl .bank .name {
-  font-family: var(--sans); font-size: 11px; font-weight: 600;
-}
-#pdf-tpl .bank .branch {
-  font-family: var(--mono); font-size: 8px; color: var(--ink2); margin-top: 2px;
-}
-#pdf-tpl .bank .iban {
-  font-family: var(--mono); font-size: 9px;
-  margin-top: 6px; letter-spacing: 0.04em; word-break: break-all;
-}
-#pdf-tpl .bank .vkn {
-  font-family: var(--mono); font-size: 7.5px;
-  color: var(--ink3); margin-top: 4px; letter-spacing: 0.06em;
-}
-
-/* PDF — Sign row */
-#pdf-tpl .sign-row {
-  display: grid; grid-template-columns: 1fr 1fr 84px;
-  gap: 12px; align-items: flex-end;
-}
-#pdf-tpl .sign-line {
-  height: 32px; border-bottom: 0.75px solid var(--rule); margin-top: 4px;
-}
-#pdf-tpl .sign-name {
-  font-family: var(--sans); font-weight: 500; font-size: 10px; margin-top: 6px;
-}
-#pdf-tpl .qr-box {
-  border: 0.75px solid var(--rule); padding: 4px; background: #fff;
-}
-
-/* PDF — Page-break controls */
-#pdf-tpl .header,
-#pdf-tpl .parties,
-#pdf-tpl .thead,
-#pdf-tpl .trow,
-#pdf-tpl .bottom,
-#pdf-tpl .nb,
-#pdf-tpl .sign-row {
-  page-break-inside: avoid;
-  break-inside: avoid;
-}
-
-/* @media print — native Ctrl+P color preservation */
+/* @media print */
 @media print {
   body { background: #FFFFFF !important; margin: 0 !important; }
-  #pdf-tpl {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
+  .pdf-pg { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 }
-
 
 .brand-logo{display:block;height:28px;width:auto;object-fit:contain;object-position:left center}
 </style>
@@ -891,6 +735,10 @@ body {
           </select>
         </div>
       </div>
+      <div class="field" style="margin-top:0">
+        <label class="field__label" for="f-rev">Revizyon</label>
+        <input id="f-rev" class="field__input" type="text" placeholder="A" maxlength="4" value="A" style="max-width:80px">
+      </div>
     </div>
   </section>
 
@@ -922,6 +770,66 @@ body {
         <label class="field__label" for="f-notes">Ek Not (İsteğe Bağlı)</label>
         <textarea id="f-notes" class="field__input field__input--textarea"
           placeholder="Standart maddeler dışında belirtmek istediğiniz notlar…"></textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4b . Odeme Plani -->
+  <section>
+    <div class="section__label">Ã–deme Planı</div>
+    <div class="card">
+      <div class="pay-steps">
+        <div class="pay-step">
+          <div class="pay-step__hd">
+            <span class="pay-step__num">STEP 01</span>
+            <input class="pay-step__pct" id="f-pay1-pct" type="text" placeholder="50" value="50" maxlength="3">
+            <span style="font-size:20px;font-weight:200;color:#c2410c">%</span>
+          </div>
+          <div class="field--2col">
+            <div class="field">
+              <label class="field__label">Aşama Adı</label>
+              <input id="f-pay1-stage" class="field__input" type="text" placeholder="Sipariş onayı" value="Sipariş onayı">
+            </div>
+            <div class="field">
+              <label class="field__label">Zaman / Koşul</label>
+              <input id="f-pay1-when" class="field__input" type="text" placeholder="Sözleşme imza" value="Sözleşme imza">
+            </div>
+          </div>
+        </div>
+        <div class="pay-step">
+          <div class="pay-step__hd">
+            <span class="pay-step__num">STEP 02</span>
+            <input class="pay-step__pct" id="f-pay2-pct" type="text" placeholder="30" value="30" maxlength="3">
+            <span style="font-size:20px;font-weight:200;color:#c2410c">%</span>
+          </div>
+          <div class="field--2col">
+            <div class="field">
+              <label class="field__label">Aşama Adı</label>
+              <input id="f-pay2-stage" class="field__input" type="text" placeholder="Üretim ortası" value="Üretim ortası">
+            </div>
+            <div class="field">
+              <label class="field__label">Zaman / Koşul</label>
+              <input id="f-pay2-when" class="field__input" type="text" placeholder="4. hafta sonu" value="4. hafta sonu">
+            </div>
+          </div>
+        </div>
+        <div class="pay-step">
+          <div class="pay-step__hd">
+            <span class="pay-step__num">STEP 03</span>
+            <input class="pay-step__pct" id="f-pay3-pct" type="text" placeholder="20" value="20" maxlength="3">
+            <span style="font-size:20px;font-weight:200;color:#c2410c">%</span>
+          </div>
+          <div class="field--2col">
+            <div class="field">
+              <label class="field__label">Aşama Adı</label>
+              <input id="f-pay3-stage" class="field__input" type="text" placeholder="Teslim &amp; kurulum" value="Teslim &amp; kurulum">
+            </div>
+            <div class="field">
+              <label class="field__label">Zaman / Koşul</label>
+              <input id="f-pay3-when" class="field__input" type="text" placeholder="Teslim günü" value="Teslim günü">
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -992,70 +900,95 @@ body {
 <!-- ═══════════════════════════════════════════
      PDF TEMPLATE  (off-screen render)
 ═══════════════════════════════════════════ -->
-<div id="pdf-tpl">
 
+<!-- ==========================================
+     PDF PAGES  (off-screen render)
+     =========================================== -->
+
+<!-- PAGE 1 . COVER -->
+<div id="pdf-p1" class="pdf-pg">
   <div class="frame"></div>
   <div class="crosshair ch-tl"></div>
   <div class="crosshair ch-tr"></div>
   <div class="crosshair ch-bl"></div>
   <div class="crosshair ch-br"></div>
-
   <div class="strip-top">
-    <span>LUKAS CONCEPT · İÇ MİMARLIK · İSTANBUL</span>
-    <span>SHEET 01 / 01 · A4</span>
+    <span>LUKAS CONCEPT · İC MİMARLIK · İSTANBUL</span>
+    <span>SHEET 01 / 03 · A4</span>
   </div>
   <div class="strip-bot">
-    <span id="p-strip-doc">DOC · —</span>
-    <span id="p-strip-date">—</span>
-    <span>REV. A · SCALE 1:1</span>
+    <span id="p1-strip-doc">DOC · —</span>
+    <span id="p1-strip-date">—</span>
+    <span id="p1-rev">REV. A · SCALE 1:1</span>
   </div>
-
   <div class="body">
-
-    <!-- HEADER BAND -->
-    <div class="header">
-      <div class="num">
-        <div>
-          <div class="label">BELGE №</div>
-          <div class="big" id="p-doc-num">001</div>
-        </div>
-        <div class="doc" id="p-doc-meta">TKF · —</div>
+    <div class="cover-header">
+      <div class="label-sm">[01] · COVER SHEET</div>
+      <div class="label-sm" id="p1-rev-label">REV. A · —</div>
+    </div>
+    <div class="big-num" id="p1-doc-num">001</div>
+    <div class="cover-title" id="p1-title">—</div>
+    <div class="cover-loc" id="p1-loc"></div>
+    <div class="spec-grid">
+      <div class="spec-cell">
+        <div class="label">CLIENT</div>
+        <div class="sv" id="p1-client">—</div>
+        <div class="ssub" id="p1-client-sub"></div>
       </div>
-      <div class="title">
-        <div class="label">PROJE</div>
-        <div class="t" id="p-project">—</div>
+      <div class="spec-cell">
+        <div class="label">DATE</div>
+        <div class="sv" id="p1-date">—</div>
+        <div class="ssub" id="p1-valid">VALID 30D</div>
       </div>
-      <div class="meta">
-        <div class="row">
-          <span class="k">HAZIRLAYAN</span>
-          <b>G. ALTINOLUK</b><br>
-          <span style="color:var(--ink3);font-size:8px;">SR. INTERIOR ARCHITECT</span>
-        </div>
-        <div class="row" style="margin-top:auto;">
-          <span class="k">İLETİŞİM</span>
-          studio@lukasconcept.com<br>+90 212 358 21 19
-        </div>
+      <div class="spec-cell">
+        <div class="label">SCOPE</div>
+        <div class="sv" id="p1-scope">0 KALEM</div>
+        <div class="ssub" id="p1-tax-lbl">KDV %18</div>
+      </div>
+      <div class="spec-cell">
+        <div class="label">REV</div>
+        <div class="sv" id="p1-rev-val">A</div>
+        <div class="ssub">INDOOR</div>
       </div>
     </div>
-
-    <!-- PARTIES -->
-    <div class="parties">
+    <div class="cover-foot">
       <div>
-        <div class="label">FROM · STÜDYO</div>
-        <div class="name">LUKAS CONCEPT</div>
-        <div class="sub">
-          Etiler Mah. Nisbetiye Cad. No:42 D:8, Beşiktaş / İstanbul<br>
-          VKN · Beşiktaş V.D. · 612 047 8821
-        </div>
+        <div class="label">STUDIO</div>
+        <div class="studio-name">LUKAS CONCEPT</div>
+        <div class="studio-sub">İC MİMARLIK · İSTANBUL</div>
+        <div class="studio-contact">studio@lukasconcept.com · lukasconcept.com<br>+90 212 358 21 19</div>
       </div>
-      <div>
-        <div class="label">TO · MÜŞTERİ</div>
-        <div class="name" id="p-client-name">—</div>
-        <div class="sub" id="p-client-sub"></div>
+      <div style="text-align:right">
+        <div class="label">PREPARED BY</div>
+        <div class="prep-name">G. ALTINOLUK</div>
+        <div class="prep-role">SR. INTERIOR ARCHITECT</div>
       </div>
     </div>
+  </div>
+</div>
 
-    <!-- ITEMS -->
+<!-- PAGE 2 . ITEMS -->
+<div id="pdf-p2" class="pdf-pg">
+  <div class="frame"></div>
+  <div class="crosshair ch-tl"></div>
+  <div class="crosshair ch-tr"></div>
+  <div class="crosshair ch-bl"></div>
+  <div class="crosshair ch-br"></div>
+  <div class="strip-top">
+    <span>LUKAS CONCEPT · İC MİMARLIK · İSTANBUL</span>
+    <span>SHEET 02 / 03 · A4</span>
+  </div>
+  <div class="strip-bot">
+    <span id="p2-strip-doc">DOC · —</span>
+    <span id="p2-strip-date">—</span>
+    <span id="p2-rev">REV. A · SCALE 1:1</span>
+  </div>
+  <div class="body">
+    <div class="h-row">
+      <div class="label-sm">[02] · BILL OF QUANTITIES</div>
+      <div class="label-sm" id="p2-scope-lbl">0 ITEMS · KDV %18</div>
+    </div>
+    <div class="section-title">Kalem listesi <span class="muted">· bedeller</span></div>
     <div class="table">
       <div class="thead">
         <div>CODE</div>
@@ -1064,82 +997,101 @@ body {
         <div class="ralign">UNIT</div>
         <div class="ralign">AMOUNT</div>
       </div>
-      <div id="p-tbody"></div>
+      <div id="p2-tbody"></div>
     </div>
-
-    <!-- PAYMENT + TOTALS -->
-    <div class="bottom">
-      <div class="pay-pack">
-        <div class="ttl">ÖDEME PLANI</div>
-        <div class="grid">
-          <div class="cell">
-            <div class="step">STEP 01</div>
-            <div class="pct">%50</div>
-            <div class="stage">Sipariş onayı</div>
-            <div class="when">Sözleşme imza</div>
-          </div>
-          <div class="cell">
-            <div class="step">STEP 02</div>
-            <div class="pct">%30</div>
-            <div class="stage">Üretim ortası</div>
-            <div class="when">4. hafta sonu</div>
-          </div>
-          <div class="cell">
-            <div class="step">STEP 03</div>
-            <div class="pct">%20</div>
-            <div class="stage">Teslim &amp; kurulum</div>
-            <div class="when">Teslim günü</div>
-          </div>
-        </div>
+    <div class="totals">
+      <div>
+        <div class="k">SUBTOTAL</div>
+        <div class="v" id="p2-subtotal">—</div>
       </div>
-      <div class="total-pack">
-        <div>
-          <div class="row"><span class="k">SUBTOTAL</span><span id="p-subtotal">—</span></div>
-          <div class="row tax-row" id="p-tax-row"><span class="k" id="p-tax-lbl">KDV %20</span><span id="p-tax-val">—</span></div>
-        </div>
-        <div class="grand">
-          <div class="k">GENEL TOPLAM · KDV DAHİL</div>
-          <div class="v" id="p-grand">— <span class="u">₺</span></div>
-        </div>
+      <div id="p2-tax-cell">
+        <div class="k" id="p2-tax-lbl">KDV %18</div>
+        <div class="v" id="p2-tax-val">—</div>
+      </div>
+      <div class="last">
+        <div class="k">TOTAL</div>
+        <div class="v" id="p2-grand">—</div>
       </div>
     </div>
+  </div>
+</div>
 
-    <!-- NOTES + BANK -->
-    <div class="nb">
+<!-- PAGE 3 . TERMS -->
+<div id="pdf-p3" class="pdf-pg">
+  <div class="frame"></div>
+  <div class="crosshair ch-tl"></div>
+  <div class="crosshair ch-tr"></div>
+  <div class="crosshair ch-bl"></div>
+  <div class="crosshair ch-br"></div>
+  <div class="strip-top">
+    <span>LUKAS CONCEPT · İC MİMARLIK · İSTANBUL</span>
+    <span>SHEET 03 / 03 · A4</span>
+  </div>
+  <div class="strip-bot">
+    <span id="p3-strip-doc">DOC · —</span>
+    <span id="p3-strip-date">—</span>
+    <span id="p3-rev">REV. A · SCALE 1:1</span>
+  </div>
+  <div class="body">
+    <div class="h-row">
+      <div class="label-sm">[03] · TERMS · PAYMENT · SIGN-OFF</div>
+    </div>
+    <div class="section-title">Koşullar <span class="muted">· onay</span></div>
+    <div class="pay-section">
+      <div class="label-sm">PAYMENT MILESTONES</div>
+      <div class="pay-grid">
+        <div class="pay-card">
+          <div class="step">STEP 01</div>
+          <div class="stage" id="p3-pay1-stage">Sipariş onayı</div>
+          <div class="when"  id="p3-pay1-when">Sözleşme imza</div>
+          <div class="pct"   id="p3-pay1-pct">%50</div>
+        </div>
+        <div class="pay-card">
+          <div class="step">STEP 02</div>
+          <div class="stage" id="p3-pay2-stage">Üretim ortası</div>
+          <div class="when"  id="p3-pay2-when">4. hafta sonu</div>
+          <div class="pct"   id="p3-pay2-pct">%30</div>
+        </div>
+        <div class="pay-card">
+          <div class="step">STEP 03</div>
+          <div class="stage" id="p3-pay3-stage">Teslim &amp; kurulum</div>
+          <div class="when"  id="p3-pay3-when">Teslim günü</div>
+          <div class="pct"   id="p3-pay3-pct">%20</div>
+        </div>
+      </div>
+    </div>
+    <div class="two-col">
       <div>
-        <div class="label">NOTLAR &amp; KOŞULLAR</div>
-        <ul class="notes" id="p-notes-list"></ul>
+        <div class="label-sm">GENERAL NOTES</div>
+        <ul class="notes" id="p3-notes-list"></ul>
       </div>
       <div>
-        <div class="label">BANKA · HAVALE</div>
-        <div class="bank" style="margin-top:6px;">
+        <div class="label-sm">BANK · TRANSFER</div>
+        <div class="bank-card">
           <div class="name">LUKAS CONCEPT</div>
-          <div class="branch">İş Bankası · Etiler Şubesi</div>
+          <div class="branch">İ&#351; Bankası · Etiler Şubesi</div>
           <div class="iban">TR68 0006 4000 0011 2345 6789 01</div>
           <div class="vkn">VKN · Beşiktaş V.D. · 612 047 8821</div>
         </div>
       </div>
     </div>
-
-    <!-- SIGN-OFF -->
     <div class="sign-row">
       <div>
-        <div class="label">STÜDYO · İMZA</div>
+        <div class="label-sm">STÜDYO · İMZA</div>
         <div class="sign-line"></div>
         <div class="sign-name">LUKAS CONCEPT</div>
       </div>
       <div>
-        <div class="label">MÜŞTERİ · ONAY</div>
+        <div class="label-sm">MÜŞTERİ · ONAY</div>
         <div class="sign-line"></div>
-        <div class="sign-name" id="p-sign-client">—</div>
+        <div class="sign-name" id="p3-sign-client">—</div>
       </div>
       <div class="qr-box">
-        <svg width="76" height="76" viewBox="0 0 21 21" id="p-qr"></svg>
+        <svg width="88" height="88" viewBox="0 0 21 21" id="p3-qr"></svg>
       </div>
     </div>
-
   </div>
-</div><!-- /#pdf-tpl -->
+</div>
 
 <script>
 /* ═══════════════════════════════════════════
@@ -1361,52 +1313,57 @@ function updateTotals() {
   grandEl.classList.add('pop');
 }
 
-/* ═══════════════════════════════════════════
-   PDF TEMPLATE POPULATION
-═══════════════════════════════════════════ */
 function populatePDF() {
   const cur       = document.getElementById('f-currency').value;
   const taxRate   = parseFloat(document.getElementById('f-tax').value) || 0;
   const dateVal   = document.getElementById('f-date').value;
   const validDays = parseInt(document.getElementById('f-validity').value);
-
+  const rev       = (document.getElementById('f-rev').value || 'A').trim().toUpperCase();
   const clientName  = document.getElementById('f-name').value.trim();
   const clientCo    = document.getElementById('f-co').value.trim();
   const clientEmail = document.getElementById('f-email').value.trim();
   const clientPhone = document.getElementById('f-phone').value.trim();
   const notes       = document.getElementById('f-notes').value.trim();
 
-  /* Strip — doc number & date */
   const numSuffix = quoteNum.split('-').pop() || '001';
   const dateParts = dateVal ? dateVal.split('-') : [];
-  const docMeta   = dateParts.length === 3
-    ? `TKF · ${dateParts[0]}.${dateParts[1]}.${dateParts[2]}`
-    : 'TKF · —';
-
-  document.getElementById('p-doc-num').textContent  = numSuffix;
-  document.getElementById('p-doc-meta').textContent = docMeta;
-  document.getElementById('p-strip-doc').textContent = `DOC · ${quoteNum}`;
-
-  const trDate = dateVal ? new Date(dateVal + 'T00:00:00') : null;
-  const trMonths = ['OCAK','ŞUBAT','MART','NİSAN','MAYIS','HAZİRAN',
-                    'TEMMUZ','AĞUSTOS','EYLÜL','EKİM','KASIM','ARALIK'];
+  const trMonths  = ['OCAK','ŞUBAT','MART','NİSAN','MAYIS','HAZİRAN','TEMMUZ','AĞUSTOS','EYLÜL','EKİM','KASIM','ARALIK'];
+  const trDate    = dateVal ? new Date(dateVal + 'T00:00:00') : null;
   const stripDate = trDate
     ? `${trDate.getDate()} ${trMonths[trDate.getMonth()]} ${trDate.getFullYear()} · GEÇERLİLİK ${validDays} GÜN`
     : '—';
-  document.getElementById('p-strip-date').textContent = stripDate;
+  const revStr  = `REV. ${rev} · SCALE 1:1`;
+  const docStr  = `DOC · ${quoteNum}`;
+  const dateStr = dateParts.length === 3 ? `${dateParts[2]}.${dateParts[1]}.${dateParts[0]}` : '—';
+  const { subtotal, taxAmt, grand } = calcTotals();
+  const fmtN = v => v.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2});
+  const activeItems = items.filter(i => i.desc || i.price > 0);
 
-  /* Header */
-  const project = clientCo || clientName || 'Proje';
-  document.getElementById('p-project').textContent = project;
+  function setTxt(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+  function setHtml(id, v) { const el = document.getElementById(id); if (el) el.innerHTML = v; }
 
-  /* Parties */
-  const displayName = [clientName, clientCo].filter(Boolean).join(' · ') || '—';
-  document.getElementById('p-client-name').textContent = displayName;
-  const subLines = [clientEmail, clientPhone].filter(Boolean);
-  document.getElementById('p-client-sub').innerHTML = subLines.map(l => esc(l)).join('<br>');
+  /* PAGE 1 - COVER */
+  setTxt('p1-doc-num',    numSuffix);
+  setTxt('p1-rev-label',  `REV. ${rev} · ${dateStr}`);
+  setTxt('p1-strip-doc',  docStr);
+  setTxt('p1-strip-date', stripDate);
+  setTxt('p1-rev',        revStr);
+  setTxt('p1-title',      clientCo || clientName || '—');
+  setTxt('p1-client',     [clientName, clientCo].filter(Boolean).join(' · ') || '—');
+  setTxt('p1-client-sub', [clientEmail, clientPhone].filter(Boolean).join(' · ') || '');
+  setTxt('p1-date',       dateStr);
+  setTxt('p1-valid',      `VALID ${validDays}D`);
+  setTxt('p1-scope',      `${activeItems.length} KALEM`);
+  setTxt('p1-tax-lbl',    `KDV %${taxRate}`);
+  setTxt('p1-rev-val',    rev);
 
-  /* Table */
-  const tbody = document.getElementById('p-tbody');
+  /* PAGE 2 - ITEMS */
+  setTxt('p2-strip-doc',  docStr);
+  setTxt('p2-strip-date', stripDate);
+  setTxt('p2-rev',        revStr);
+  setTxt('p2-scope-lbl',  `${activeItems.length} ITEMS · KDV %${taxRate}`);
+
+  const tbody = document.getElementById('p2-tbody');
   tbody.innerHTML = '';
   let rowIdx = 0;
   items.forEach(it => {
@@ -1419,30 +1376,34 @@ function populatePDF() {
     row.innerHTML = `
       <div class="code">${code}</div>
       <div><div class="title">${esc(it.desc || '—')}</div></div>
-      <div class="num">${(it.qty || 0).toLocaleString('tr-TR')} <span class="qty-unit">${it.unit || 'ad'}</span></div>
-      <div class="num muted">${fmt(it.price || 0, cur)}</div>
+      <div class="num">${(it.qty||0).toLocaleString('tr-TR')} <span class="qty-unit">${it.unit||'ad'}</span></div>
+      <div class="num muted">${fmt(it.price||0, cur)}</div>
       <div class="num bold">${fmt(line, cur)}</div>`;
     tbody.appendChild(row);
   });
 
-  /* Totals */
-  const { subtotal, taxAmt, grand } = calcTotals();
-  document.getElementById('p-subtotal').textContent = fmt(subtotal, cur);
-  document.getElementById('p-tax-lbl').textContent  = `KDV %${taxRate}`;
-  document.getElementById('p-tax-val').textContent  = fmt(taxAmt, cur);
+  setHtml('p2-subtotal', `${fmtN(subtotal)} <span class="u">${cur}</span>`);
+  setTxt('p2-tax-lbl',   `KDV %${taxRate}`);
+  setHtml('p2-tax-val',  `${fmtN(taxAmt)} <span class="u">${cur}</span>`);
+  setHtml('p2-grand',    `${fmtN(grand)} <span class="u">${cur}</span>`);
+  const p2Tax = document.getElementById('p2-tax-cell');
+  if (p2Tax) p2Tax.style.display = taxRate > 0 ? '' : 'none';
 
-  const grandNum = grand.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  document.getElementById('p-grand').innerHTML = `${grandNum} <span class="u">${cur}</span>`;
+  /* PAGE 3 - TERMS */
+  setTxt('p3-strip-doc',  docStr);
+  setTxt('p3-strip-date', stripDate);
+  setTxt('p3-rev',        revStr);
 
-  const taxRow = document.getElementById('p-tax-row');
-  if (taxRate > 0) {
-    taxRow.classList.add('visible');
-  } else {
-    taxRow.classList.remove('visible');
+  for (let i = 1; i <= 3; i++) {
+    const pctRaw   = (document.getElementById(`f-pay${i}-pct`).value || '').replace(/[^0-9]/g, '');
+    const stageVal = document.getElementById(`f-pay${i}-stage`).value.trim();
+    const whenVal  = document.getElementById(`f-pay${i}-when`).value.trim();
+    setTxt(`p3-pay${i}-pct`,   pctRaw ? `%${pctRaw}` : '—');
+    setTxt(`p3-pay${i}-stage`, stageVal || '—');
+    setTxt(`p3-pay${i}-when`,  whenVal  || '—');
   }
 
-  /* Notes */
-  const lines = clauses
+  const noteLines = clauses
     .filter(c => c.on)
     .map(c => {
       if (c.fixed) return c.fixed;
@@ -1451,118 +1412,92 @@ function populatePDF() {
         return choice[p.sel] ?? p.opts[0];
       }).join('');
     });
-  if (notes) lines.push(notes);
+  if (notes) noteLines.push(notes);
+  setHtml('p3-notes-list', noteLines
+    .map((l, i) => `<li><span class="n">N.${String(i+1).padStart(2,'0')}</span><span>${esc(l)}</span></li>`)
+    .join(''));
 
-  document.getElementById('p-notes-list').innerHTML = lines
-    .map((l, i) => `<li><span class="n">N.${String(i + 1).padStart(2, '0')}</span><span>${esc(l)}</span></li>`)
-    .join('');
-
-  /* Sign row */
-  document.getElementById('p-sign-client').textContent = clientCo || clientName || '—';
-
-  /* QR */
-  if (typeof buildQR === 'function') {
-    buildQR(document.getElementById('p-qr'));
-  }
+  setTxt('p3-sign-client', clientCo || clientName || '—');
+  if (typeof buildQR === 'function') buildQR(document.getElementById('p3-qr'));
 }
 
-/* ═══════════════════════════════════════════
+/* ===========================================
    GENERATE & SHARE
-═══════════════════════════════════════════ */
-async function waitForAssets(root) {
-  // 1) Fonts ready (Inter etc.)
-  if (document.fonts && document.fonts.ready) {
-    try { await document.fonts.ready; } catch (e) { /* ignore */ }
-  }
-
-  // 2) Images fully decoded
-  const imgs = Array.from(root.querySelectorAll('img'));
-  await Promise.all(imgs.map(img => {
-    if (img.complete && img.naturalWidth > 0) return Promise.resolve();
-    return new Promise(resolve => {
-      const done = () => resolve();
-      img.addEventListener('load',  done, { once: true });
-      img.addEventListener('error', done, { once: true });
-      setTimeout(done, 3000); // safety timeout
-    });
-  }));
-
-  // 3) Two animation frames — layout + paint
-  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-}
-
+   =========================================== */
 async function generateAndShare() {
   const hasContent = items.some(i => i.desc || i.price > 0);
   if (!hasContent) { showToast('Lütfen en az bir ürün / hizmet ekleyin'); return; }
 
-  const btn         = document.getElementById('js-main-btn');
+  const btn = document.getElementById('js-main-btn');
   const origBtnHTML = btn.innerHTML;
   btn.disabled = true;
   btn.innerHTML = `<div class="spin-ico"></div><span>Hazırlanıyor…</span>`;
 
-  const tpl      = document.getElementById('pdf-tpl');
-  const origCss  = tpl.getAttribute('style') || '';
-  const origSX   = window.scrollX;
-  const origSY   = window.scrollY;
   const filename = `lukas-concept-${quoteNum}.pdf`;
-
-  // Scroll to (0,0) so capture coordinates are aligned
+  const origSX = window.scrollX;
+  const origSY = window.scrollY;
   window.scrollTo(0, 0);
-
-  // Position template at document origin with maximum z-index — nothing can overlap it
-  tpl.style.cssText =
-    'position:absolute;left:0;top:0;width:794px;min-height:1123px;' +
-    'z-index:2147483647;margin:0;';
 
   try {
     populatePDF();
-    await waitForAssets(tpl);
+    await waitForAssets(document.body);
 
-    // Direct html2canvas call — bypasses html2pdf wrapper's clone manipulation
-    const canvas = await html2canvas(tpl, {
-      scale:           2,
-      useCORS:         true,
-      allowTaint:      true,
-      letterRendering: true,
-      logging:         false,
-      backgroundColor: '#FFFFFF',
-      scrollX:         0,
-      scrollY:         0,
-      windowWidth:     document.documentElement.clientWidth,
-      windowHeight:    document.documentElement.clientHeight,
-    });
-
-    if (!canvas || canvas.width === 0 || canvas.height === 0) {
-      throw new Error('Canvas capture boş döndü');
-    }
-
-    // Build PDF with jsPDF directly
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+    const pdf  = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
 
-    const pageW  = pdf.internal.pageSize.getWidth();
-    const pageH  = pdf.internal.pageSize.getHeight();
-    const imgW   = pageW;
-    const imgH   = imgW * (canvas.height / canvas.width);
-    const imgData = canvas.toDataURL('image/jpeg', 0.97);
+    const pageIds = ['pdf-p1', 'pdf-p2', 'pdf-p3'];
+    let firstPage = true;
 
-    let remaining = imgH;
-    let yOffset   = 0;
-    pdf.addImage(imgData, 'JPEG', 0, yOffset, imgW, imgH, undefined, 'FAST');
-    remaining -= pageH;
-    while (remaining > 0) {
-      yOffset = -(imgH - remaining);
-      pdf.addPage();
-      pdf.addImage(imgData, 'JPEG', 0, yOffset, imgW, imgH, undefined, 'FAST');
-      remaining -= pageH;
+    for (const pid of pageIds) {
+      const el = document.getElementById(pid);
+      const origCss = el.getAttribute('style') || '';
+      el.style.cssText =
+        'position:absolute;left:0;top:0;width:794px;min-height:1123px;' +
+        'background:#fafaf7;background-image:linear-gradient(to right,rgba(14,14,12,.06) .5px,transparent .5px),linear-gradient(to bottom,rgba(14,14,12,.06) .5px,transparent .5px);background-size:32px 32px;' +
+        'z-index:2147483647;margin:0;';
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+      const canvas = await html2canvas(el, {
+        scale:           2,
+        useCORS:         true,
+        allowTaint:      true,
+        letterRendering: true,
+        logging:         false,
+        backgroundColor: '#fafaf7',
+        scrollX:         0,
+        scrollY:         0,
+        windowWidth:     document.documentElement.clientWidth,
+        windowHeight:    document.documentElement.clientHeight,
+      });
+
+      el.setAttribute('style', origCss);
+      if (!canvas || canvas.width === 0) throw new Error('Canvas empty: ' + pid);
+
+      const imgW = pageW;
+      const imgH = imgW * (canvas.height / canvas.width);
+      const imgData = canvas.toDataURL('image/jpeg', 0.97);
+
+      if (!firstPage) pdf.addPage();
+      firstPage = false;
+
+      pdf.addImage(imgData, 'JPEG', 0, 0, imgW, imgH, undefined, 'FAST');
+      let remaining = imgH - pageH;
+      let yOff = -pageH;
+      while (remaining > 0) {
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, yOff, imgW, imgH, undefined, 'FAST');
+        remaining -= pageH;
+        yOff -= pageH;
+      }
     }
 
     const pdfBlob = pdf.output('blob');
 
-    // Share or download
     if (typeof navigator.share === 'function') {
       try {
-        const file    = new File([pdfBlob], filename, { type: 'application/pdf' });
+        const file = new File([pdfBlob], filename, { type: 'application/pdf' });
         const canFile = navigator.canShare && navigator.canShare({ files: [file] });
         if (canFile) {
           await navigator.share({
@@ -1585,7 +1520,6 @@ async function generateAndShare() {
     console.error('PDF hatası:', err);
     showToast('Hata: ' + (err.message || 'PDF oluşturulamadı'));
   } finally {
-    tpl.setAttribute('style', origCss);
     window.scrollTo(origSX, origSY);
     btn.disabled = false;
     btn.innerHTML = origBtnHTML;
@@ -1613,6 +1547,16 @@ function resetForm() {
   document.getElementById('f-tax').value      = '18';
   document.getElementById('f-currency').value = '₺';
   document.getElementById('f-validity').value = '30';
+  document.getElementById('f-rev').value       = 'A';
+  document.getElementById('f-pay1-pct').value   = '50';
+  document.getElementById('f-pay1-stage').value = 'Sipariş onayı';
+  document.getElementById('f-pay1-when').value  = 'Sözleşme imza';
+  document.getElementById('f-pay2-pct').value   = '30';
+  document.getElementById('f-pay2-stage').value = 'Üretim ortası';
+  document.getElementById('f-pay2-when').value  = '4. hafta sonu';
+  document.getElementById('f-pay3-pct').value   = '20';
+  document.getElementById('f-pay3-stage').value = 'Teslim & kurulum';
+  document.getElementById('f-pay3-when').value  = 'Teslim günü';
   items  = [];
   nextId = 1;
   addItem();
