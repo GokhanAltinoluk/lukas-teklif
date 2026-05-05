@@ -1500,9 +1500,10 @@ async function generateAndShare() {
       firstPage = false;
 
       pdf.addImage(imgData, 'JPEG', 0, 0, imgW, imgH, undefined, 'FAST');
+      const SLICE_TOL = 2;
       let remaining = imgH - pageH;
       let yOff = -pageH;
-      while (remaining > 0) {
+      while (remaining > SLICE_TOL) {
         pdf.addPage();
         pdf.addImage(imgData, 'JPEG', 0, yOff, imgW, imgH, undefined, 'FAST');
         remaining -= pageH;
