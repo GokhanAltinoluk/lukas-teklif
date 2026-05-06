@@ -532,7 +532,7 @@ body {
   background-size: 32px 32px;
   -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact;
 }
-#pdf-p1, #pdf-p3 { height: 1123px; overflow: hidden; }
+#pdf-p0, #pdf-p1, #pdf-p3 { height: 1123px; overflow: hidden; }
 #pdf-p2 { min-height: 1123px; overflow: visible; }
 .pdf-pg * {
   -webkit-print-color-adjust: exact; print-color-adjust: exact;
@@ -645,6 +645,10 @@ body {
 .pdf-pg .sign-line { height: 36px; border-bottom: 0.75px solid var(--rule); margin-top: 5px; }
 .pdf-pg .sign-name { font-family: var(--sans); font-weight: 500; font-size: 10px; margin-top: 5px; }
 .pdf-pg .qr-box { border: 0.75px solid var(--rule); padding: 4px; background: #fff; }
+
+/* Single-page (≤5 items) overrides */
+#pdf-p0 .big-num { font-size: 120px; }
+#pdf-p0 .pay-card .pct { font-size: 32px; margin-top: 4px; }
 
 /* PDF - Page-break controls */
 .pdf-pg .thead, .pdf-pg .trow { page-break-inside: avoid; break-inside: avoid; }
@@ -905,6 +909,131 @@ body {
      PDF PAGES  (off-screen render)
      =========================================== -->
 
+<!-- PAGE 0 . SINGLE PAGE (≤5 items) -->
+<div id="pdf-p0" class="pdf-pg">
+  <div class="frame"></div>
+  <div class="crosshair ch-tl"></div>
+  <div class="crosshair ch-tr"></div>
+  <div class="crosshair ch-bl"></div>
+  <div class="crosshair ch-br"></div>
+  <div class="strip-top">
+    <span>LUKAS CONCEPT · İC MİMARLIK · İSTANBUL</span>
+    <span>SHEET 01 / 01 · A4</span>
+  </div>
+  <div class="strip-bot">
+    <span id="p0-strip-doc">DOC · —</span>
+    <span id="p0-strip-date">—</span>
+    <span id="p0-rev">REV. A · SCALE 1:1</span>
+  </div>
+  <div class="body">
+    <div class="h-row">
+      <div class="label-sm">[01] · FİYAT TEKLİFİ</div>
+      <div class="label-sm" id="p0-rev-label">REV. A · —</div>
+    </div>
+    <div class="big-num" id="p0-doc-num">001</div>
+    <div class="cover-title" id="p0-title">—</div>
+    <div class="spec-grid">
+      <div class="spec-cell">
+        <div class="label">CLIENT</div>
+        <div class="sv" id="p0-client">—</div>
+        <div class="ssub" id="p0-client-sub"></div>
+      </div>
+      <div class="spec-cell">
+        <div class="label">DATE</div>
+        <div class="sv" id="p0-date">—</div>
+        <div class="ssub" id="p0-valid">VALID 30D</div>
+      </div>
+      <div class="spec-cell">
+        <div class="label">SCOPE</div>
+        <div class="sv" id="p0-scope">0 KALEM</div>
+        <div class="ssub" id="p0-tax-lbl">KDV %18</div>
+      </div>
+      <div class="spec-cell">
+        <div class="label">REV</div>
+        <div class="sv" id="p0-rev-val">A</div>
+        <div class="ssub">INDOOR</div>
+      </div>
+    </div>
+    <div class="table">
+      <div class="thead">
+        <div>CODE</div>
+        <div>DESCRIPTION</div>
+        <div class="ralign">QTY</div>
+        <div class="ralign">UNIT</div>
+        <div class="ralign">AMOUNT</div>
+      </div>
+      <div id="p0-tbody"></div>
+    </div>
+    <div class="totals">
+      <div>
+        <div class="k">SUBTOTAL</div>
+        <div class="v" id="p0-subtotal">—</div>
+      </div>
+      <div id="p0-tax-cell">
+        <div class="k" id="p0-tax-lbl2">KDV %18</div>
+        <div class="v" id="p0-tax-val">—</div>
+      </div>
+      <div class="last">
+        <div class="k">TOTAL</div>
+        <div class="v" id="p0-grand">—</div>
+      </div>
+    </div>
+    <div>
+      <div class="label-sm">PAYMENT MILESTONES</div>
+      <div class="pay-grid" style="margin-top:6px">
+        <div class="pay-card">
+          <div class="step">STEP 01</div>
+          <div class="stage" id="p0-pay1-stage">Sipariş onayı</div>
+          <div class="when"  id="p0-pay1-when">Sözleşme imza</div>
+          <div class="pct"   id="p0-pay1-pct">%50</div>
+        </div>
+        <div class="pay-card">
+          <div class="step">STEP 02</div>
+          <div class="stage" id="p0-pay2-stage">Üretim ortası</div>
+          <div class="when"  id="p0-pay2-when">4. hafta sonu</div>
+          <div class="pct"   id="p0-pay2-pct">%30</div>
+        </div>
+        <div class="pay-card">
+          <div class="step">STEP 03</div>
+          <div class="stage" id="p0-pay3-stage">Teslim &amp; kurulum</div>
+          <div class="when"  id="p0-pay3-when">Teslim günü</div>
+          <div class="pct"   id="p0-pay3-pct">%20</div>
+        </div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div>
+        <div class="label-sm">GENERAL NOTES</div>
+        <ul class="notes" id="p0-notes-list"></ul>
+      </div>
+      <div>
+        <div class="label-sm">BANK · TRANSFER</div>
+        <div class="bank-card">
+          <div class="name">LUKAS CONCEPT</div>
+          <div class="branch">İş Bankası · Etiler Şubesi</div>
+          <div class="iban">TR68 0006 4000 0011 2345 6789 01</div>
+          <div class="vkn">VKN · Beşiktaş V.D. · 612 047 8821</div>
+        </div>
+      </div>
+    </div>
+    <div class="sign-row">
+      <div>
+        <div class="label-sm">STÜDYO · İMZA</div>
+        <div class="sign-line"></div>
+        <div class="sign-name">LUKAS CONCEPT</div>
+      </div>
+      <div>
+        <div class="label-sm">MÜŞTERİ · ONAY</div>
+        <div class="sign-line"></div>
+        <div class="sign-name" id="p0-sign-client">—</div>
+      </div>
+      <div class="qr-box">
+        <svg width="88" height="88" viewBox="0 0 21 21" id="p0-qr"></svg>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- PAGE 1 . COVER -->
 <div id="pdf-p1" class="pdf-pg">
   <div class="frame"></div>
@@ -951,17 +1080,19 @@ body {
         <div class="ssub">INDOOR</div>
       </div>
     </div>
-    <div class="cover-foot">
+    <div class="sign-row">
       <div>
-        <div class="label">STUDIO</div>
-        <div class="studio-name">LUKAS CONCEPT</div>
-        <div class="studio-sub">İC MİMARLIK · İSTANBUL</div>
-        <div class="studio-contact">studio@lukasconcept.com · lukasconcept.com<br>+90 212 358 21 19</div>
+        <div class="label-sm">STÜDYO · İMZA</div>
+        <div class="sign-line"></div>
+        <div class="sign-name">LUKAS CONCEPT</div>
       </div>
-      <div style="text-align:right">
-        <div class="label">PREPARED BY</div>
-        <div class="prep-name">G. ALTINOLUK</div>
-        <div class="prep-role">SR. INTERIOR ARCHITECT</div>
+      <div>
+        <div class="label-sm">MÜŞTERİ · ONAY</div>
+        <div class="sign-line"></div>
+        <div class="sign-name" id="p1-sign-client">—</div>
+      </div>
+      <div class="qr-box">
+        <svg width="88" height="88" viewBox="0 0 21 21" id="p1-qr"></svg>
       </div>
     </div>
   </div>
@@ -1011,6 +1142,21 @@ body {
       <div class="last">
         <div class="k">TOTAL</div>
         <div class="v" id="p2-grand">—</div>
+      </div>
+    </div>
+    <div class="sign-row">
+      <div>
+        <div class="label-sm">STÜDYO · İMZA</div>
+        <div class="sign-line"></div>
+        <div class="sign-name">LUKAS CONCEPT</div>
+      </div>
+      <div>
+        <div class="label-sm">MÜŞTERİ · ONAY</div>
+        <div class="sign-line"></div>
+        <div class="sign-name" id="p2-sign-client">—</div>
+      </div>
+      <div class="qr-box">
+        <svg width="88" height="88" viewBox="0 0 21 21" id="p2-qr"></svg>
       </div>
     </div>
   </div>
@@ -1413,12 +1559,64 @@ function populatePDF() {
       }).join('');
     });
   if (notes) noteLines.push(notes);
-  setHtml('p3-notes-list', noteLines
+  const notesHtml = noteLines
     .map((l, i) => `<li><span class="n">N.${String(i+1).padStart(2,'0')}</span><span>${esc(l)}</span></li>`)
-    .join(''));
+    .join('');
+  setHtml('p3-notes-list', notesHtml);
+  setHtml('p0-notes-list', notesHtml);
 
-  setTxt('p3-sign-client', clientCo || clientName || '—');
-  if (typeof buildQR === 'function') buildQR(document.getElementById('p3-qr'));
+  /* PAGE 0 - SINGLE PAGE (≤5 items) */
+  setTxt('p0-doc-num',    numSuffix);
+  setTxt('p0-rev-label',  `REV. ${rev} · ${dateStr}`);
+  setTxt('p0-strip-doc',  docStr);
+  setTxt('p0-strip-date', stripDate);
+  setTxt('p0-rev',        revStr);
+  setTxt('p0-title',      clientCo || clientName || '—');
+  setTxt('p0-client',     [clientName, clientCo].filter(Boolean).join(' · ') || '—');
+  setTxt('p0-client-sub', [clientEmail, clientPhone].filter(Boolean).join(' · ') || '');
+  setTxt('p0-date',       dateStr);
+  setTxt('p0-valid',      `VALID ${validDays}D`);
+  setTxt('p0-scope',      `${activeItems.length} KALEM`);
+  setTxt('p0-tax-lbl',    `KDV %${taxRate}`);
+  setTxt('p0-rev-val',    rev);
+
+  const p0tbody = document.getElementById('p0-tbody');
+  p0tbody.innerHTML = '';
+  let p0Idx = 0;
+  items.forEach(it => {
+    if (!it.desc && !it.price) return;
+    const line = it.qty * it.price;
+    const code = String(p0Idx + 1).padStart(2, '0');
+    p0Idx++;
+    const row = document.createElement('div');
+    row.className = 'trow';
+    row.innerHTML = `<div class="code">${code}</div><div><div class="title">${esc(it.desc||'—')}</div></div><div class="num">${(it.qty||0).toLocaleString('tr-TR')} <span class="qty-unit">${it.unit||'ad'}</span></div><div class="num muted">${fmt(it.price||0,cur)}</div><div class="num bold">${fmt(line,cur)}</div>`;
+    p0tbody.appendChild(row);
+  });
+  setHtml('p0-subtotal', `${fmtN(subtotal)} <span class="u">${cur}</span>`);
+  setTxt('p0-tax-lbl2',  `KDV %${taxRate}`);
+  setHtml('p0-tax-val',  `${fmtN(taxAmt)} <span class="u">${cur}</span>`);
+  setHtml('p0-grand',    `${fmtN(grand)} <span class="u">${cur}</span>`);
+  const p0Tax = document.getElementById('p0-tax-cell');
+  if (p0Tax) p0Tax.style.display = taxRate > 0 ? '' : 'none';
+  for (let i = 1; i <= 3; i++) {
+    const pctRaw   = (document.getElementById(`f-pay${i}-pct`).value||'').replace(/[^0-9]/g,'');
+    setTxt(`p0-pay${i}-pct`,   pctRaw ? `%${pctRaw}` : '—');
+    setTxt(`p0-pay${i}-stage`, (document.getElementById(`f-pay${i}-stage`).value||'').trim()||'—');
+    setTxt(`p0-pay${i}-when`,  (document.getElementById(`f-pay${i}-when`).value||'').trim()||'—');
+  }
+
+  /* Sign rows — all pages */
+  const clientLabel = clientCo || clientName || '—';
+  setTxt('p0-sign-client', clientLabel);
+  setTxt('p1-sign-client', clientLabel);
+  setTxt('p2-sign-client', clientLabel);
+  setTxt('p3-sign-client', clientLabel);
+  if (typeof buildQR === 'function') {
+    ['p0-qr','p1-qr','p2-qr','p3-qr'].forEach(id => {
+      const el = document.getElementById(id); if (el) buildQR(el);
+    });
+  }
 }
 
 /* ===========================================
@@ -1464,7 +1662,8 @@ async function generateAndShare() {
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
 
-    const pageIds = ['pdf-p1', 'pdf-p2', 'pdf-p3'];
+    const activeCount = items.filter(i => i.desc || i.price > 0).length;
+    const pageIds = activeCount <= 5 ? ['pdf-p0'] : ['pdf-p1', 'pdf-p2', 'pdf-p3'];
     let firstPage = true;
 
     for (const pid of pageIds) {
