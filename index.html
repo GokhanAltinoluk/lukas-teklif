@@ -649,7 +649,6 @@ body {
 /* Single-page (≤5 items) overrides */
 #pdf-p0 .big-num { font-size: 120px; }
 #pdf-p0 .pay-card .pct { font-size: 32px; margin-top: 4px; }
-#pdf-p0 .body { position: static; padding: 52px 54px 52px; }
 
 /* PDF - Page-break controls */
 .pdf-pg .thead, .pdf-pg .trow { page-break-inside: avoid; break-inside: avoid; }
@@ -1002,19 +1001,13 @@ body {
         </div>
       </div>
     </div>
-    <div class="two-col">
-      <div>
-        <div class="label-sm">GENERAL NOTES</div>
-        <ul class="notes" id="p0-notes-list"></ul>
-      </div>
-      <div>
-        <div class="label-sm">BANK · TRANSFER</div>
-        <div class="bank-card">
-          <div class="name">LUKAS CONCEPT</div>
-          <div class="branch">İş Bankası · Etiler Şubesi</div>
-          <div class="iban">TR68 0006 4000 0011 2345 6789 01</div>
-          <div class="vkn">VKN · Beşiktaş V.D. · 612 047 8821</div>
-        </div>
+    <div>
+      <div class="label-sm">BANK · TRANSFER</div>
+      <div class="bank-card">
+        <div class="name">LUKAS CONCEPT</div>
+        <div class="branch">İş Bankası · Etiler Şubesi</div>
+        <div class="iban">TR68 0006 4000 0011 2345 6789 01</div>
+        <div class="vkn">VKN · Beşiktaş V.D. · 612 047 8821</div>
       </div>
     </div>
     <div class="sign-row">
@@ -1564,7 +1557,6 @@ function populatePDF() {
     .map((l, i) => `<li><span class="n">N.${String(i+1).padStart(2,'0')}</span><span>${esc(l)}</span></li>`)
     .join('');
   setHtml('p3-notes-list', notesHtml);
-  setHtml('p0-notes-list', notesHtml);
 
   /* PAGE 0 - SINGLE PAGE (≤5 items) */
   setTxt('p0-doc-num',    numSuffix);
