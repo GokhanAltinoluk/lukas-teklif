@@ -645,7 +645,10 @@ body {
 .pdf-pg .sign-line { height: 36px; border-bottom: 0.75px solid var(--rule); margin-top: 5px; }
 .pdf-pg .sign-name { font-family: var(--sans); font-weight: 500; font-size: 10px; margin-top: 5px; }
 .pdf-pg .qr-box { border: 0.75px solid var(--rule); padding: 4px; background: #fff; }
-.pdf-pg .cover-letter { font-family: var(--sans); font-size: 9.5px; line-height: 1.65; color: var(--ink2); padding: 11px 14px; border-left: 1.5px solid var(--accent); background: rgba(194,65,12,0.03); }
+.pdf-pg .cover-letter { font-family: var(--sans); font-size: 11px; line-height: 1.75; color: var(--ink); padding: 4px 0; }
+.pdf-pg .cover-letter p { margin: 0 0 7px 0; text-indent: 2em; }
+.pdf-pg .cover-letter p:last-child { margin-bottom: 0; }
+.pdf-pg .cover-letter .cl-sign { text-indent: 0; text-align: right; margin-top: 10px; font-style: italic; }
 
 /* Single-page (≤5 items) overrides */
 #pdf-p0 .big-num { font-size: 120px; }
@@ -1500,10 +1503,13 @@ function populatePDF() {
   setTxt('p1-tax-lbl',    `KDV %${taxRate}`);
   setTxt('p1-rev-val',    rev);
 
-  const projectLabel = clientCo || clientName || 'Projeniz';
-  const coverLetterText = `${projectLabel} için ihtiyaçlarınız doğrultusunda kurguladığımız mimari çözüm ve teklif dosyamız ekte bilgilerinize sunulmuştur. Fikirlerinizi somut bir yapıya dönüştürecek bu taslağı incelemenizin ardından, projenin detaylarını ve uygulama takvimini netleştirmek üzere görüşmekten memnuniyet duyarız. Saygılarımla.`;
-  setTxt('p1-cover-letter', coverLetterText);
-  setTxt('p0-cover-letter', coverLetterText);
+  const projectLabel = esc(clientCo || clientName || 'Projeniz');
+  const coverLetterHtml =
+    `<p>${projectLabel} için ihtiyaçlarınız doğrultusunda kurguladığımız mimari çözüm ve teklif dosyamız ekte bilgilerinize sunulmuştur.</p>` +
+    `<p>Fikirlerinizi somut bir yapıya dönüştürecek bu taslağı incelemenizin ardından, projenin detaylarını ve uygulama takvimini netleştirmek üzere görüşmekten memnuniyet duyarız.</p>` +
+    `<p class="cl-sign">Saygılarımla.</p>`;
+  setHtml('p1-cover-letter', coverLetterHtml);
+  setHtml('p0-cover-letter', coverLetterHtml);
 
   /* PAGE 2 - ITEMS */
   setTxt('p2-strip-doc',  docStr);
