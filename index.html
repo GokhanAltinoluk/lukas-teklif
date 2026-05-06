@@ -570,7 +570,10 @@ body {
 }
 #pdf-p2 .body {
   position: static;
-  padding: 68px 54px 68px;
+  padding: 68px 54px 148px;
+}
+#pdf-p2 .sign-row {
+  position: absolute; bottom: 52px; left: 54px; right: 54px; margin-top: 0;
 }
 
 .pdf-pg .label { font-family: var(--mono); font-size: 7.5px; letter-spacing: 0.2em; color: var(--ink3); text-transform: uppercase; }
@@ -636,6 +639,7 @@ body {
 .pdf-pg .notes { padding-left: 0; list-style: none; margin-top: 8px; }
 .pdf-pg .notes li { display: grid; grid-template-columns: 28px 1fr; gap: 4px; font-family: var(--sans); font-size: 9px; color: var(--ink2); line-height: 1.4; margin-bottom: 5px; }
 .pdf-pg .notes li .n { font-family: var(--mono); font-size: 8px; color: var(--accent); letter-spacing: 0.08em; }
+.pdf-pg .notes .notes-head { display: block; font-family: var(--mono); font-size: 7.5px; letter-spacing: 0.18em; color: var(--ink3); text-transform: uppercase; margin-top: 10px; padding-top: 7px; border-top: 0.5px solid rgba(14,14,12,0.18); }
 .pdf-pg .bank-card { margin-top: 8px; border: 0.75px solid var(--rule); padding: 12px; }
 .pdf-pg .bank-card .name { font-family: var(--sans); font-size: 12px; font-weight: 600; }
 .pdf-pg .bank-card .branch { font-family: var(--mono); font-size: 8px; color: var(--ink2); margin-top: 2px; }
@@ -958,7 +962,6 @@ body {
         <div class="ssub">INDOOR</div>
       </div>
     </div>
-    <div class="cover-letter" id="p0-cover-letter"></div>
     <div class="table">
       <div class="thead">
         <div>CODE</div>
@@ -1258,24 +1261,24 @@ const clauses = [
     { sel:'kapsam', opts:['işçilik hizmetlerini','Malzeme ve işçilik hizmetlerini','malzeme fiyatını'] },
     { t:' kapsar.' }
   ]},
-  { id:'c3', on:true, parts:[
+  { id:'c3', on:true, group:'prereq', parts:[
     { t:'Teklif fiyatımızda; İşçilik hizmetinin sağlanması için kullanılacak el aletleri ' },
     { sel:'el', opts:['tarafımıza','tarafınıza'] },
     { t:' aittir. İşin yapılabilmesi için kullanılacak iskele ' },
     { sel:'iskele', opts:['tarafınıza','tarafımıza'] },
     { t:' aittir.' }
   ]},
-  { id:'c4', on:true, parts:[
+  { id:'c4', on:true, group:'prereq', parts:[
     { t:"Tüm personelin puantaja göre SGK'sı, İSG, " },
     { sel:'sgk', opts:['tarafınıza','tarafımıza'] },
     { t:' aittir.' }
   ]},
-  { id:'c5', on:true, parts:[
+  { id:'c5', on:true, group:'prereq', parts:[
     { t:'Yeme-İçme ve barınma ' },
     { sel:'yeme', opts:['tarafınıza','tarafımıza'] },
     { t:' aittir.' }
   ]},
-  { id:'c6', on:true, parts:[
+  { id:'c6', on:true, group:'prereq', parts:[
     { t:'Şantiye sahasında kullanılacak tüm elektrik ve su giderleri ' },
     { sel:'elektrik', opts:['tarafınıza','tarafımıza'] },
     { t:' aittir.' }
@@ -1283,7 +1286,7 @@ const clauses = [
   { id:'c7',  on:true, fixed:'Ödeme şekli; karşılıklı görüşülecektir.' },
   { id:'c8',  on:true, fixed:'Sözlü mutabakata varılmasından itibaren en geç 3 iş günü içerisinde yazılı sözleşme imzalanacaktır.' },
   { id:'c9',  on:true, fixed:'Sözleşme imzalanmasından itibaren 7 iş günü içinde işe başlanacaktır.' },
-  { id:'c10', on:true, fixed:'İş başlangıcı yapılabilmesi için tüm personel bilgisi 1 iş günü öncesi tarafınıza yazılı bildirilecektir.' }
+  { id:'c10', on:true, group:'prereq', fixed:'İş başlangıcı yapılabilmesi için tüm personel bilgisi 1 iş günü öncesi tarafınıza yazılı bildirilecektir.' }
 ];
 const choice = {};
 
@@ -1509,7 +1512,6 @@ function populatePDF() {
     `<p>Fikirlerinizi somut bir yapıya dönüştürecek bu taslağı incelemenizin ardından, projenin detaylarını ve uygulama takvimini netleştirmek üzere görüşmekten memnuniyet duyarız.</p>` +
     `<p class="cl-sign">Saygılarımla.</p>`;
   setHtml('p1-cover-letter', coverLetterHtml);
-  setHtml('p0-cover-letter', coverLetterHtml);
 
   /* PAGE 2 - ITEMS */
   setTxt('p2-strip-doc',  docStr);
@@ -1557,19 +1559,26 @@ function populatePDF() {
     setTxt(`p3-pay${i}-when`,  whenVal  || '—');
   }
 
-  const noteLines = clauses
-    .filter(c => c.on)
-    .map(c => {
-      if (c.fixed) return c.fixed;
-      return c.parts.map(p => {
-        if (p.t !== undefined) return p.t;
-        return choice[p.sel] ?? p.opts[0];
-      }).join('');
-    });
-  if (notes) noteLines.push(notes);
-  const notesHtml = noteLines
-    .map((l, i) => `<li><span class="n">N.${String(i+1).padStart(2,'0')}</span><span>${esc(l)}</span></li>`)
+  function clauseText(c) {
+    if (c.fixed) return c.fixed;
+    return c.parts.map(p => p.t !== undefined ? p.t : (choice[p.sel] ?? p.opts[0])).join('');
+  }
+  const generalClauses = clauses.filter(c => c.on && !c.group);
+  const prereqClauses  = clauses.filter(c => c.on && c.group === 'prereq');
+
+  let notesHtml = generalClauses
+    .map((c, i) => `<li><span class="n">N.${String(i+1).padStart(2,'0')}</span><span>${esc(clauseText(c))}</span></li>`)
     .join('');
+  if (notes) {
+    const idx = generalClauses.length + 1;
+    notesHtml += `<li><span class="n">N.${String(idx).padStart(2,'0')}</span><span>${esc(notes)}</span></li>`;
+  }
+  if (prereqClauses.length) {
+    notesHtml += `<li class="notes-head">İşin Yapılabilmesi İçin</li>`;
+    notesHtml += prereqClauses
+      .map((c, i) => `<li><span class="n">Ş.${String(i+1).padStart(2,'0')}</span><span>${esc(clauseText(c))}</span></li>`)
+      .join('');
+  }
   setHtml('p3-notes-list', notesHtml);
 
   /* PAGE 0 - SINGLE PAGE (≤5 items) */
