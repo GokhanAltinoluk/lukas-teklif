@@ -645,6 +645,7 @@ body {
 .pdf-pg .sign-line { height: 36px; border-bottom: 0.75px solid var(--rule); margin-top: 5px; }
 .pdf-pg .sign-name { font-family: var(--sans); font-weight: 500; font-size: 10px; margin-top: 5px; }
 .pdf-pg .qr-box { border: 0.75px solid var(--rule); padding: 4px; background: #fff; }
+.pdf-pg .cover-letter { font-family: var(--sans); font-size: 9.5px; line-height: 1.65; color: var(--ink2); padding: 11px 14px; border-left: 1.5px solid var(--accent); background: rgba(194,65,12,0.03); }
 
 /* Single-page (≤5 items) overrides */
 #pdf-p0 .big-num { font-size: 120px; }
@@ -954,6 +955,7 @@ body {
         <div class="ssub">INDOOR</div>
       </div>
     </div>
+    <div class="cover-letter" id="p0-cover-letter"></div>
     <div class="table">
       <div class="thead">
         <div>CODE</div>
@@ -1074,6 +1076,7 @@ body {
         <div class="ssub">INDOOR</div>
       </div>
     </div>
+    <div class="cover-letter" id="p1-cover-letter"></div>
     <div class="sign-row">
       <div>
         <div class="label-sm">STÜDYO · İMZA</div>
@@ -1496,6 +1499,11 @@ function populatePDF() {
   setTxt('p1-scope',      `${activeItems.length} KALEM`);
   setTxt('p1-tax-lbl',    `KDV %${taxRate}`);
   setTxt('p1-rev-val',    rev);
+
+  const projectLabel = clientCo || clientName || 'Projeniz';
+  const coverLetterText = `${projectLabel} için ihtiyaçlarınız doğrultusunda kurguladığımız mimari çözüm ve teklif dosyamız ekte bilgilerinize sunulmuştur. Fikirlerinizi somut bir yapıya dönüştürecek bu taslağı incelemenizin ardından, projenin detaylarını ve uygulama takvimini netleştirmek üzere görüşmekten memnuniyet duyarız. Saygılarımla.`;
+  setTxt('p1-cover-letter', coverLetterText);
+  setTxt('p0-cover-letter', coverLetterText);
 
   /* PAGE 2 - ITEMS */
   setTxt('p2-strip-doc',  docStr);
