@@ -723,6 +723,8 @@ body {
 .pdf-pg .bank-card .vkn { font-family: var(--mono); font-size: 7.5px; color: var(--ink3); margin-top: 5px; letter-spacing: 0.06em; }
 .pdf-pg .sign-row { margin-top: auto; flex-shrink: 0; display: grid; grid-template-columns: 1fr 1fr 96px; gap: 14px; align-items: flex-end; padding-bottom: 6px; }
 .pdf-pg .sign-line { height: 36px; border-bottom: 0.75px solid var(--rule); margin-top: 5px; }
+.pdf-pg .sign-img { display: block; height: 28px; max-width: 100%; object-fit: contain; object-position: left center; margin-top: 4px; }
+.pdf-pg .totals.has-discount > div.last { grid-column: 1 / -1; }
 .pdf-pg .sign-name { font-family: var(--sans); font-weight: 500; font-size: 10px; margin-top: 5px; }
 .pdf-pg .qr-box { border: 0.75px solid var(--rule); padding: 4px; background: #fff; }
 .pdf-pg .cover-letter { font-family: var(--sans); font-size: 15.6px; font-weight: 300; line-height: 1.85; color: var(--ink); letter-spacing: 0.01em; padding: 8px 44px; margin-top: auto; }
@@ -1136,6 +1138,7 @@ body {
     <div class="sign-row">
       <div>
         <div class="label-sm">STÜDYO · İMZA</div>
+        <img class="sign-img" src="imza.png" alt="">
         <div class="sign-line"></div>
         <div class="sign-name">LUKAS CONCEPT</div>
       </div>
@@ -1201,6 +1204,7 @@ body {
     <div class="sign-row">
       <div>
         <div class="label-sm">STÜDYO · İMZA</div>
+        <img class="sign-img" src="imza.png" alt="">
         <div class="sign-line"></div>
         <div class="sign-name">LUKAS CONCEPT</div>
       </div>
@@ -1269,6 +1273,7 @@ body {
     <div class="sign-row">
       <div>
         <div class="label-sm">STÜDYO · İMZA</div>
+        <img class="sign-img" src="imza.png" alt="">
         <div class="sign-line"></div>
         <div class="sign-name">LUKAS CONCEPT</div>
       </div>
@@ -1346,6 +1351,7 @@ body {
     <div class="sign-row">
       <div>
         <div class="label-sm">STÜDYO · İMZA</div>
+        <img class="sign-img" src="imza.png" alt="">
         <div class="sign-line"></div>
         <div class="sign-name">LUKAS CONCEPT</div>
       </div>
@@ -1799,6 +1805,8 @@ function populatePDF() {
     setTxt('p2-discount-lbl', `İSKONTO %${discountPct}`);
     setHtml('p2-discount-val', `−${fmtN(discountAmt)} <span class="u">${cur}</span>`);
   }
+  const p2TotalsEl = document.querySelector('#pdf-p2 .totals');
+  if (p2TotalsEl) p2TotalsEl.classList.toggle('has-discount', discountPct > 0);
   setTxt('p2-tax-lbl',   `KDV %${taxRate}`);
   setHtml('p2-tax-val',  `${fmtN(taxAmt)} <span class="u">${cur}</span>`);
   setHtml('p2-grand',    `${fmtN(grand)} <span class="u">${cur}</span>`);
@@ -1876,6 +1884,8 @@ function populatePDF() {
     setTxt('p0-discount-lbl', `İSKONTO %${discountPct}`);
     setHtml('p0-discount-val', `−${fmtN(discountAmt)} <span class="u">${cur}</span>`);
   }
+  const p0TotalsEl = document.querySelector('#pdf-p0 .totals');
+  if (p0TotalsEl) p0TotalsEl.classList.toggle('has-discount', discountPct > 0);
   setTxt('p0-tax-lbl2',  `KDV %${taxRate}`);
   setHtml('p0-tax-val',  `${fmtN(taxAmt)} <span class="u">${cur}</span>`);
   setHtml('p0-grand',    `${fmtN(grand)} <span class="u">${cur}</span>`);
