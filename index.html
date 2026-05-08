@@ -971,12 +971,15 @@ body {
     <div class="totals-card">
       <div class="total-row">
         <span class="total-row__lbl">Para Birimi</span>
-        <select class="ctrl-select" id="f-currency" onchange="updateTotals()">
-          <option value="₺">₺ — Türk Lirası</option>
-          <option value="$">$ — Dolar</option>
-          <option value="€">€ — Euro</option>
-          <option value="£">£ — Sterlin</option>
-        </select>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+          <select class="ctrl-select" id="f-currency" onchange="onCurrencyChange()">
+            <option value="₺">₺ — Türk Lirası</option>
+            <option value="$">$ — Dolar</option>
+            <option value="€">€ — Euro</option>
+            <option value="£">£ — Sterlin</option>
+          </select>
+          <span id="js-rate-info" style="font-size:10px;color:var(--text-3);font-weight:500;letter-spacing:.03em"></span>
+        </div>
       </div>
       <div class="total-row">
         <span class="total-row__lbl">Ara Toplam</span>
@@ -1410,11 +1413,50 @@ let items  = [];
 let nextId = 1;
 let quoteNum = '';
 let pdfFormat = 'auto';
+let currentRate = 1;
+const _rateCache = {};
 
 function setFmt(fmt, btn) {
   pdfFormat = fmt;
   document.querySelectorAll('.fmt-toggle__btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+}
+
+async function fetchRate(symbol) {
+  if (!symbol || symbol === '₺') return 1;
+  if (_rateCache[symbol] != null) return _rateCache[symbol];
+  const codeMap = { '$': 'USD', '€': 'EUR', '£': 'GBP' };
+  const code = codeMap[symbol];
+  if (!code) return 1;
+  const res = await fetch(`https://api.frankfurter.app/latest?from=TRY&to=${code}`);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  _rateCache[symbol] = data.rates[code];
+  return data.rates[code];
+}
+
+async function onCurrencyChange() {
+  const cur = document.getElementById('f-currency').value;
+  const rateEl = document.getElementById('js-rate-info');
+  if (cur === '₺') {
+    currentRate = 1;
+    if (rateEl) rateEl.textContent = '';
+    updateTotals();
+    return;
+  }
+  if (rateEl) rateEl.textContent = 'Kur alınıyor…';
+  try {
+    const rate = await fetchRate(cur);
+    currentRate = rate;
+    const inv = (1 / rate).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (rateEl) rateEl.textContent = `MB · 1 ${cur} = ₺${inv}`;
+    updateTotals();
+  } catch (e) {
+    currentRate = 1;
+    if (rateEl) rateEl.textContent = 'Kur alınamadı';
+    showToast('Merkez Bankası kuru alınamadı');
+    updateTotals();
+  }
 }
 
 const clauses = [
@@ -1761,14 +1803,15 @@ function updateTotals() {
   const cur = document.getElementById('f-currency').value;
   const { subtotal, discountPct, discountAmt, discounted, taxAmt, grand } = calcTotals();
 
-  document.getElementById('js-subtotal').textContent    = fmt(subtotal, cur);
-  document.getElementById('js-discount-amt').textContent = discountPct > 0 ? `−${fmt(discountAmt, cur)}` : `−${fmt(0, cur)}`;
-  document.getElementById('js-discounted').textContent  = fmt(discounted, cur);
+  const c = currentRate;
+  document.getElementById('js-subtotal').textContent    = fmt(subtotal * c, cur);
+  document.getElementById('js-discount-amt').textContent = discountPct > 0 ? `−${fmt(discountAmt * c, cur)}` : `−${fmt(0, cur)}`;
+  document.getElementById('js-discounted').textContent  = fmt(discounted * c, cur);
   document.getElementById('js-discount-row').style.display = discountPct > 0 ? '' : 'none';
-  document.getElementById('js-tax').textContent         = fmt(taxAmt,   cur);
+  document.getElementById('js-tax').textContent         = fmt(taxAmt * c, cur);
 
   const grandEl = document.getElementById('js-grand');
-  grandEl.textContent = fmt(grand, cur);
+  grandEl.textContent = fmt(grand * c, cur);
   grandEl.classList.remove('pop');
   void grandEl.offsetWidth;
   grandEl.classList.add('pop');
@@ -1797,7 +1840,7 @@ function populatePDF() {
   const docStr  = `DOC · ${quoteNum}`;
   const dateStr = dateParts.length === 3 ? `${dateParts[2]}.${dateParts[1]}.${dateParts[0]}` : '—';
   const { subtotal, discountPct, discountAmt, taxAmt, grand } = calcTotals();
-  const fmtN = v => v.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2});
+  const fmtN = v => (v * currentRate).toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2});
   const activeItems = items.filter(i => i.desc || i.price > 0);
 
   function setTxt(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
@@ -1847,8 +1890,8 @@ function populatePDF() {
       <div class="code">${code}</div>
       <div><div class="title">${esc(it.desc || '—')}</div>${detailLabel ? `<div class="detail-sub">${detailLabel}</div>` : ''}</div>
       <div class="num">${(it.qty||0).toLocaleString('tr-TR')} <span class="qty-unit">${it.unit||'ad'}</span></div>
-      <div class="num muted">${fmt(it.price||0, cur)}</div>
-      <div class="num bold">${fmt(line, cur)}</div>`;
+      <div class="num muted">${fmt((it.price||0)*currentRate, cur)}</div>
+      <div class="num bold">${fmt(line*currentRate, cur)}</div>`;
     tbody.appendChild(row);
   });
 
@@ -1930,7 +1973,7 @@ function populatePDF() {
     row.className = 'trow';
     const p0ScopeMap = { m: 'Malzeme Dahil İşçilik Hizmetleri', i: 'İşçilik Hizmetleri', nh: 'Nakliye Hariçtir', ndd: 'Nakliye Dahildir', nd: 'Nakliye Dahil İşçilik Hizmetleri' };
     const p0Detail = it.scope ? p0ScopeMap[it.scope] || '' : '';
-    row.innerHTML = `<div class="code">${code}</div><div><div class="title">${esc(it.desc||'—')}</div>${p0Detail ? `<div class="detail-sub">${p0Detail}</div>` : ''}</div><div class="num">${(it.qty||0).toLocaleString('tr-TR')} <span class="qty-unit">${it.unit||'ad'}</span></div><div class="num muted">${fmt(it.price||0,cur)}</div><div class="num bold">${fmt(line,cur)}</div>`;
+    row.innerHTML = `<div class="code">${code}</div><div><div class="title">${esc(it.desc||'—')}</div>${p0Detail ? `<div class="detail-sub">${p0Detail}</div>` : ''}</div><div class="num">${(it.qty||0).toLocaleString('tr-TR')} <span class="qty-unit">${it.unit||'ad'}</span></div><div class="num muted">${fmt((it.price||0)*currentRate,cur)}</div><div class="num bold">${fmt(line*currentRate,cur)}</div>`;
     p0tbody.appendChild(row);
   });
   setHtml('p0-subtotal', `${fmtN(subtotal)} <span class="u">${cur}</span>`);
@@ -2163,6 +2206,9 @@ function resetForm() {
   });
   document.getElementById('f-tax').value      = '18';
   document.getElementById('f-currency').value = '₺';
+  currentRate = 1;
+  const rateEl = document.getElementById('js-rate-info');
+  if (rateEl) rateEl.textContent = '';
   document.getElementById('f-validity').value = '30';
   document.getElementById('f-rev').value       = 'A';
   document.getElementById('f-pay1-pct').value   = '50';
