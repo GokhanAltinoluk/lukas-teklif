@@ -454,7 +454,24 @@ body {
 }
 .bottom-bar__inner {
   max-width: 680px; margin: 0 auto;
-  display: flex; gap: 10px;
+  display: flex; gap: 10px; align-items: center;
+}
+.fmt-toggle {
+  display: flex; gap: 2px;
+  background: var(--surface-2); border-radius: 8px; padding: 3px;
+  border: 1px solid var(--border);
+  margin-right: auto;
+}
+.fmt-toggle__btn {
+  font-family: inherit; font-size: 11px; font-weight: 600; letter-spacing: .04em;
+  padding: 4px 9px; border-radius: 6px; border: none; cursor: pointer;
+  background: transparent; color: var(--text-3);
+  transition: background .13s, color .13s;
+  white-space: nowrap;
+}
+.fmt-toggle__btn.active {
+  background: var(--surface-1); color: var(--text-1);
+  box-shadow: 0 1px 3px rgba(0,0,0,.12);
 }
 
 .btn {
@@ -1003,6 +1020,11 @@ body {
 ═══════════════════════════════════════════ -->
 <div class="bottom-bar">
   <div class="bottom-bar__inner">
+    <div class="fmt-toggle" id="js-fmt-toggle">
+      <button class="fmt-toggle__btn active" onclick="setFmt('auto',this)">Oto.</button>
+      <button class="fmt-toggle__btn" onclick="setFmt('1',this)">1 Sayfa</button>
+      <button class="fmt-toggle__btn" onclick="setFmt('3',this)">3 Sayfa</button>
+    </div>
     <button class="btn btn--ghost" onclick="resetForm()">
       <i data-lucide="rotate-ccw" style="width:14px;height:14px;flex-shrink:0"></i>
       Sıfırla
@@ -1387,6 +1409,13 @@ body {
 let items  = [];
 let nextId = 1;
 let quoteNum = '';
+let pdfFormat = 'auto';
+
+function setFmt(fmt, btn) {
+  pdfFormat = fmt;
+  document.querySelectorAll('.fmt-toggle__btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
 
 const clauses = [
   { id:'c1', on:true, parts:[
@@ -1982,7 +2011,7 @@ async function generateAndShare() {
     const pageH = pdf.internal.pageSize.getHeight();
 
     const activeCount = items.filter(i => i.desc || i.price > 0).length;
-    const pageIds = activeCount <= 5 ? ['pdf-p0'] : ['pdf-p1', 'pdf-p2', 'pdf-p3'];
+    const pageIds = pdfFormat === '1' ? ['pdf-p0'] : pdfFormat === '3' ? ['pdf-p1','pdf-p2','pdf-p3'] : (activeCount <= 5 ? ['pdf-p0'] : ['pdf-p1','pdf-p2','pdf-p3']);
     let firstPage = true;
 
     for (const pid of pageIds) {
@@ -2083,7 +2112,7 @@ async function downloadPDF() {
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
     const activeCount = items.filter(i => i.desc || i.price > 0).length;
-    const pageIds = activeCount <= 5 ? ['pdf-p0'] : ['pdf-p1', 'pdf-p2', 'pdf-p3'];
+    const pageIds = pdfFormat === '1' ? ['pdf-p0'] : pdfFormat === '3' ? ['pdf-p1','pdf-p2','pdf-p3'] : (activeCount <= 5 ? ['pdf-p0'] : ['pdf-p1','pdf-p2','pdf-p3']);
     let firstPage = true;
 
     for (const pid of pageIds) {
