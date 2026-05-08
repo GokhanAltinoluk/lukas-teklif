@@ -359,6 +359,82 @@ body {
   display: flex; align-items: center; gap: 8px;
 }
 
+.ctrl-input {
+  font-family: inherit;
+  font-size: 13px; font-weight: 600;
+  color: var(--text-1);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 4px 8px;
+  outline: none;
+  width: 52px;
+  text-align: center;
+  -moz-appearance: textfield;
+}
+.ctrl-input::-webkit-outer-spin-button,
+.ctrl-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+/* ─── Catalog Picker ─────────────────────── */
+.catalog-toggle {
+  display: flex; align-items: center; gap: 7px;
+  width: 100%; padding: 11px 16px;
+  background: var(--surface);
+  border: none; border-top: 1px solid var(--border);
+  color: var(--text-2);
+  font-family: inherit;
+  font-size: 13px; font-weight: 500;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.catalog-toggle:hover { background: var(--surface-2); color: var(--text-1); }
+.catalog-toggle__chev { margin-left: auto; transition: transform .2s; display: flex; }
+.catalog-toggle--open .catalog-toggle__chev { transform: rotate(180deg); }
+
+.catalog-body { border-top: 1px solid var(--border); }
+.catalog-search {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky; top: 0; z-index: 1;
+}
+.catalog-search__input {
+  width: 100%; font-family: inherit; font-size: 13px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 7px 12px;
+  outline: none; color: var(--text-1);
+}
+.catalog-search__input::placeholder { color: var(--text-3); }
+.catalog-cat__hd {
+  padding: 6px 16px;
+  font-size: 9px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--text-3);
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+}
+.catalog-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer; transition: background .12s;
+}
+.catalog-item:hover { background: #F5F5F8; }
+.catalog-item__desc { flex: 1; font-size: 13px; color: var(--text-1); line-height: 1.3; }
+.catalog-item__meta { font-size: 11px; color: var(--text-3); white-space: nowrap; }
+.catalog-item__price { font-size: 13px; font-weight: 600; color: var(--text-1); white-space: nowrap; font-variant-numeric: tabular-nums; min-width: 70px; text-align: right; }
+.catalog-item__add {
+  width: 24px; height: 24px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--text-1); color: #fff;
+  border-radius: 50%; border: none; cursor: pointer;
+  font-size: 15px; line-height: 1;
+  transition: background .12s, transform .12s;
+}
+.catalog-item__add:hover { background: #3a3a3e; transform: scale(1.1); }
+.catalog-empty { padding: 20px; text-align: center; font-size: 13px; color: var(--text-3); }
+.catalog-scroll { max-height: 320px; overflow-y: auto; }
+
 /* ─── Bottom Bar ─────────────────────────── */
 .bottom-bar {
   position: fixed; bottom: 0; left: 0; right: 0;
@@ -770,6 +846,21 @@ body {
         <i data-lucide="plus" style="width:14px;height:14px;flex-shrink:0"></i>
         Satır Ekle
       </button>
+      <div id="js-catalog-wrap">
+        <button class="catalog-toggle" id="js-catalog-btn" onclick="toggleCatalog()">
+          <i data-lucide="layout-list" style="width:14px;height:14px;flex-shrink:0"></i>
+          Katalogdan Seç
+          <span class="catalog-toggle__chev">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </button>
+        <div id="js-catalog-body" class="catalog-body" style="display:none">
+          <div class="catalog-search">
+            <input class="catalog-search__input" id="js-catalog-search" type="text" placeholder="Hizmet ara…" oninput="filterCatalog(this.value)">
+          </div>
+          <div class="catalog-scroll" id="js-catalog-list"></div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -863,6 +954,18 @@ body {
         <span class="total-row__lbl">Ara Toplam</span>
         <span class="total-row__val" id="js-subtotal">₺0,00</span>
       </div>
+      <div class="total-row" id="js-discount-row" style="display:none">
+        <span class="total-row__lbl">İskonto Sonrası</span>
+        <span class="total-row__val" id="js-discounted">₺0,00</span>
+      </div>
+      <div class="total-row">
+        <span class="total-row__lbl">İskonto</span>
+        <div class="tax-row-inner">
+          <input class="ctrl-input" id="f-discount" type="number" min="0" max="100" step="0.5" value="0" oninput="updateTotals()" placeholder="0">
+          <span style="font-size:13px;color:var(--text-2);font-weight:600">%</span>
+          <span class="total-row__val" id="js-discount-amt" style="color:var(--danger)">−₺0,00</span>
+        </div>
+      </div>
       <div class="total-row">
         <span class="total-row__lbl">KDV</span>
         <div class="tax-row-inner">
@@ -893,8 +996,16 @@ body {
       <i data-lucide="rotate-ccw" style="width:14px;height:14px;flex-shrink:0"></i>
       Sıfırla
     </button>
+    <button class="btn btn--ghost" id="js-dl-btn" onclick="downloadPDF()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      <span>İndir</span>
+    </button>
     <button class="btn btn--primary" id="js-main-btn" onclick="generateAndShare()">
-      <!-- Inline share-2 SVG to avoid re-init issues on state change -->
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
@@ -976,6 +1087,10 @@ body {
       <div>
         <div class="k">SUBTOTAL</div>
         <div class="v" id="p0-subtotal">—</div>
+      </div>
+      <div id="p0-discount-cell" style="display:none">
+        <div class="k" id="p0-discount-lbl">İSKONTO %0</div>
+        <div class="v" id="p0-discount-val">—</div>
       </div>
       <div id="p0-tax-cell">
         <div class="k" id="p0-tax-lbl2">KDV %18</div>
@@ -1137,6 +1252,10 @@ body {
       <div>
         <div class="k">SUBTOTAL</div>
         <div class="v" id="p2-subtotal">—</div>
+      </div>
+      <div id="p2-discount-cell" style="display:none">
+        <div class="k" id="p2-discount-lbl">İSKONTO %0</div>
+        <div class="v" id="p2-discount-val">—</div>
       </div>
       <div id="p2-tax-cell">
         <div class="k" id="p2-tax-lbl">KDV %18</div>
@@ -1341,6 +1460,124 @@ function updateQuoteCounter() {
 }
 
 /* ═══════════════════════════════════════════
+   CATALOG
+═══════════════════════════════════════════ */
+const catalog = [
+  { cat: 'Dış Cephe', items: [
+    { desc: 'Dış Cephe Mantolama Capatect Dalmaçyalı', unit: 'm²', price: 1920 },
+    { desc: 'Dış Cephe Tadilat ve Boya', unit: 'm²', price: 560 },
+    { desc: 'Dış Cephe Boya Uygulaması (Jotun, DYO, Filli Boya vb.)', unit: 'm²', price: 430 },
+    { desc: 'Fibercement Dış Cephe Kaplama', unit: 'm²', price: 4550 },
+    { desc: 'Boardex Dış Cephe Kaplama', unit: 'm²', price: 2650 },
+  ]},
+  { cat: 'Asma Tavan', items: [
+    { desc: 'Alçıpan Asma Tavan (Beyaz) Galvaniz Taşıyıcılı', unit: 'm²', price: 780 },
+    { desc: 'Alçıpan Asma Tavan (Yeşil) Galvaniz Taşıyıcılı', unit: 'm²', price: 840 },
+    { desc: 'Alçıpan Asma Tavan (Beyaz) Kutu Profil Taşıyıcılı–Kaynaklı', unit: 'm²', price: 960 },
+    { desc: 'Alçıpan Asma Tavan (Yeşil) Kutu Profil Taşıyıcılı–Kaynaklı', unit: 'm²', price: 1020 },
+    { desc: 'Metal Asma Tavan 60×60 veya 30×30', unit: 'm²', price: 1350 },
+    { desc: 'Clip-In Asma Tavan 60×60 veya 30×30', unit: 'm²', price: 1450 },
+    { desc: 'Baffle Tavan Yapımı', unit: 'm²', price: 2900 },
+    { desc: 'Mesh Tavan Yapımı', unit: 'm²', price: 2450 },
+    { desc: 'Petek Asma Tavan', unit: 'm²', price: 2100 },
+  ]},
+  { cat: 'Alçıpan / Bölme', items: [
+    { desc: 'Alçıpan Bölme Duvar', unit: 'm²', price: 900 },
+    { desc: 'Alçıpan Alın Kaplama', unit: 'mtül', price: 420 },
+    { desc: 'Alçıpan Asma Tavan Işık Bandı (Led)', unit: 'mtül', price: 420 },
+  ]},
+  { cat: 'Sıva', items: [
+    { desc: 'Anolu Mastarlı Terazili Alçı Sıva (Saten Dahil)', unit: 'm²', price: 875 },
+    { desc: 'Anolu Mastarlı Terazili Alçı Sıva (Saten Hariç)', unit: 'm²', price: 350 },
+    { desc: 'Kaba / Karışık / Saten Alçı', unit: 'm²', price: 750 },
+    { desc: 'Karışık Alçı (Saten Hariç)', unit: 'm²', price: 290 },
+    { desc: 'Makinalı Alçı Üzeri Saten Sonlama', unit: 'm²', price: 210 },
+    { desc: 'Alçıpan Üzeri Derz+Köşe Profil+2kat Saten Alçı', unit: 'm²', price: 430 },
+    { desc: 'Kara Sıva Üzeri Karışık ve Saten Alçı Sonlama', unit: 'm²', price: 460 },
+    { desc: 'Kara Sıva', unit: 'm²', price: 760 },
+  ]},
+  { cat: 'İç Cephe Boya', items: [
+    { desc: 'Tavan Plastik Boya', unit: 'm²', price: 150 },
+    { desc: 'Duvar İç Cephe Boya', unit: 'm²', price: 220 },
+    { desc: 'İç Cephe Isı Yalıtım Mantolama (Boya Dahil)', unit: 'm²', price: 1540 },
+    { desc: 'İç Cephe Komple Boya 2+1 (Tavan Dahil)', unit: 'ad', price: 40000 },
+    { desc: 'İç Cephe Komple Boya 3+1 (Tavan Dahil)', unit: 'ad', price: 50000 },
+  ]},
+  { cat: 'Seramik', items: [
+    { desc: 'Fayans ve Seramik Döşeme', unit: 'm²', price: 850 },
+  ]},
+  { cat: 'Soğuk Demir', items: [
+    { desc: 'Kutu Profil ve Kaynak İşleri', unit: 'kg', price: 150 },
+    { desc: 'Kutu Profil ve Kaynak İşleri (Uzunluk)', unit: 'mtül', price: 340 },
+  ]},
+  { cat: 'Duvar', items: [
+    { desc: 'Gaz Beton Duvar Örme', unit: 'm²', price: 450 },
+    { desc: 'Bims Duvar Örme', unit: 'm²', price: 450 },
+    { desc: 'Tuğla Duvar Örme', unit: 'm²', price: 350 },
+  ]},
+  { cat: 'İskele', items: [
+    { desc: 'Kiralık İskele (Aylık)', unit: 'm²', price: 120 },
+    { desc: 'İskele Kurma', unit: 'm²', price: 160 },
+    { desc: 'İskele Sökme', unit: 'm²', price: 160 },
+  ]},
+  { cat: 'Şantiye', items: [
+    { desc: 'Yıkım, Kırım ve Moloz Atım (Her Şey Dahil)', unit: 'm²', price: 750 },
+  ]},
+];
+
+let catalogOpen = false;
+
+function toggleCatalog() {
+  catalogOpen = !catalogOpen;
+  const body = document.getElementById('js-catalog-body');
+  const btn  = document.getElementById('js-catalog-btn');
+  body.style.display = catalogOpen ? '' : 'none';
+  btn.classList.toggle('catalog-toggle--open', catalogOpen);
+  if (catalogOpen) {
+    renderCatalog('');
+    document.getElementById('js-catalog-search').value = '';
+    document.getElementById('js-catalog-search').focus();
+  }
+}
+
+function renderCatalog(query) {
+  const list = document.getElementById('js-catalog-list');
+  const q = query.trim().toLowerCase();
+  let html = '';
+  let any = false;
+  catalog.forEach(cat => {
+    const matched = q
+      ? cat.items.filter(it => it.desc.toLowerCase().includes(q))
+      : cat.items;
+    if (!matched.length) return;
+    any = true;
+    html += `<div class="catalog-cat__hd">${esc(cat.cat)}</div>`;
+    matched.forEach(it => {
+      const priceStr = it.price.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      html += `<div class="catalog-item" onclick="addCatalogItem(${JSON.stringify(it.desc)},${JSON.stringify(it.unit)},${it.price})">
+        <span class="catalog-item__desc">${esc(it.desc)}</span>
+        <span class="catalog-item__meta">${it.unit}</span>
+        <span class="catalog-item__price">₺${priceStr}</span>
+        <button class="catalog-item__add" type="button" title="Ekle">+</button>
+      </div>`;
+    });
+  });
+  if (!any) html = `<div class="catalog-empty">Sonuç bulunamadı.</div>`;
+  list.innerHTML = html;
+}
+
+function filterCatalog(val) {
+  renderCatalog(val);
+}
+
+function addCatalogItem(desc, unit, price) {
+  items.push({ id: nextId++, desc, qty: 1, unit, price });
+  renderItems();
+  updateTotals();
+  showToast('Eklendi: ' + desc.substring(0, 30) + (desc.length > 30 ? '…' : ''));
+}
+
+/* ═══════════════════════════════════════════
    ITEMS
 ═══════════════════════════════════════════ */
 function addItem() {
@@ -1377,7 +1614,7 @@ function renderItems() {
         placeholder="1" value="${it.qty || ''}"
         oninput="setItem(${it.id},'qty',this.value)">
       <select class="item-select" onchange="setItem(${it.id},'unit',this.value)">
-        ${['ad','m²','m³','mtül','ton','tane'].map(u => `<option value="${u}"` + (it.unit===u ? ' selected' : '') + `>${u}</option>`).join('')}
+        ${['ad','m²','m³','mtül','kg','ton','tane'].map(u => `<option value="${u}"` + (it.unit===u ? ' selected' : '') + `>${u}</option>`).join('')}
       </select>
       <input class="item-input item-input--r" type="number" min="0" step="0.01"
         placeholder="0,00" value="${it.price || ''}"
@@ -1442,18 +1679,24 @@ function setChoice(key, val) {
    TOTALS
 ═══════════════════════════════════════════ */
 function calcTotals() {
-  const taxRate  = parseFloat(document.getElementById('f-tax').value) || 0;
-  const subtotal = items.reduce((s, i) => s + (i.qty * i.price), 0);
-  const taxAmt   = subtotal * (taxRate / 100);
-  return { subtotal, taxRate, taxAmt, grand: subtotal + taxAmt };
+  const taxRate     = parseFloat(document.getElementById('f-tax').value) || 0;
+  const discountPct = parseFloat(document.getElementById('f-discount').value) || 0;
+  const subtotal    = items.reduce((s, i) => s + (i.qty * i.price), 0);
+  const discountAmt = subtotal * (discountPct / 100);
+  const discounted  = subtotal - discountAmt;
+  const taxAmt      = discounted * (taxRate / 100);
+  return { subtotal, discountPct, discountAmt, discounted, taxRate, taxAmt, grand: discounted + taxAmt };
 }
 
 function updateTotals() {
   const cur = document.getElementById('f-currency').value;
-  const { subtotal, taxAmt, grand } = calcTotals();
+  const { subtotal, discountPct, discountAmt, discounted, taxAmt, grand } = calcTotals();
 
-  document.getElementById('js-subtotal').textContent = fmt(subtotal, cur);
-  document.getElementById('js-tax').textContent      = fmt(taxAmt,   cur);
+  document.getElementById('js-subtotal').textContent    = fmt(subtotal, cur);
+  document.getElementById('js-discount-amt').textContent = discountPct > 0 ? `−${fmt(discountAmt, cur)}` : `−${fmt(0, cur)}`;
+  document.getElementById('js-discounted').textContent  = fmt(discounted, cur);
+  document.getElementById('js-discount-row').style.display = discountPct > 0 ? '' : 'none';
+  document.getElementById('js-tax').textContent         = fmt(taxAmt,   cur);
 
   const grandEl = document.getElementById('js-grand');
   grandEl.textContent = fmt(grand, cur);
@@ -1484,7 +1727,7 @@ function populatePDF() {
   const revStr  = `REV. ${rev} · SCALE 1:1`;
   const docStr  = `DOC · ${quoteNum}`;
   const dateStr = dateParts.length === 3 ? `${dateParts[2]}.${dateParts[1]}.${dateParts[0]}` : '—';
-  const { subtotal, taxAmt, grand } = calcTotals();
+  const { subtotal, discountPct, discountAmt, taxAmt, grand } = calcTotals();
   const fmtN = v => v.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2});
   const activeItems = items.filter(i => i.desc || i.price > 0);
 
@@ -1539,6 +1782,12 @@ function populatePDF() {
   });
 
   setHtml('p2-subtotal', `${fmtN(subtotal)} <span class="u">${cur}</span>`);
+  const p2Disc = document.getElementById('p2-discount-cell');
+  if (p2Disc) {
+    p2Disc.style.display = discountPct > 0 ? '' : 'none';
+    setTxt('p2-discount-lbl', `İSKONTO %${discountPct}`);
+    setHtml('p2-discount-val', `−${fmtN(discountAmt)} <span class="u">${cur}</span>`);
+  }
   setTxt('p2-tax-lbl',   `KDV %${taxRate}`);
   setHtml('p2-tax-val',  `${fmtN(taxAmt)} <span class="u">${cur}</span>`);
   setHtml('p2-grand',    `${fmtN(grand)} <span class="u">${cur}</span>`);
@@ -1610,6 +1859,12 @@ function populatePDF() {
     p0tbody.appendChild(row);
   });
   setHtml('p0-subtotal', `${fmtN(subtotal)} <span class="u">${cur}</span>`);
+  const p0Disc = document.getElementById('p0-discount-cell');
+  if (p0Disc) {
+    p0Disc.style.display = discountPct > 0 ? '' : 'none';
+    setTxt('p0-discount-lbl', `İSKONTO %${discountPct}`);
+    setHtml('p0-discount-val', `−${fmtN(discountAmt)} <span class="u">${cur}</span>`);
+  }
   setTxt('p0-tax-lbl2',  `KDV %${taxRate}`);
   setHtml('p0-tax-val',  `${fmtN(taxAmt)} <span class="u">${cur}</span>`);
   setHtml('p0-grand',    `${fmtN(grand)} <span class="u">${cur}</span>`);
@@ -1756,6 +2011,58 @@ async function generateAndShare() {
     window.scrollTo(origSX, origSY);
     btn.disabled = false;
     btn.innerHTML = origBtnHTML;
+  }
+}
+
+async function downloadPDF() {
+  const hasContent = items.some(i => i.desc || i.price > 0);
+  if (!hasContent) { showToast('Lütfen en az bir ürün / hizmet ekleyin'); return; }
+
+  const btn = document.getElementById('js-dl-btn');
+  const origHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = `<div class="spin-ico" style="border-top-color:var(--text-1);border-color:rgba(0,0,0,.2)"></div><span>Hazırlanıyor…</span>`;
+
+  const filename = `lukas-concept-${quoteNum}.pdf`;
+  const origSX = window.scrollX, origSY = window.scrollY;
+  window.scrollTo(0, 0);
+
+  try {
+    populatePDF();
+    await waitForAssets(document.body);
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const activeCount = items.filter(i => i.desc || i.price > 0).length;
+    const pageIds = activeCount <= 5 ? ['pdf-p0'] : ['pdf-p1', 'pdf-p2', 'pdf-p3'];
+    let firstPage = true;
+
+    for (const pid of pageIds) {
+      const el = document.getElementById(pid);
+      const origCss = el.getAttribute('style') || '';
+      el.style.cssText = 'position:absolute;left:0;top:0;width:794px;min-height:1123px;background:#fafaf7;background-image:linear-gradient(to right,rgba(14,14,12,.06) .5px,transparent .5px),linear-gradient(to bottom,rgba(14,14,12,.06) .5px,transparent .5px);background-size:32px 32px;z-index:2147483647;margin:0;';
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const canvas = await html2canvas(el, { scale:2, useCORS:true, allowTaint:true, letterRendering:true, logging:false, backgroundColor:'#fafaf7', scrollX:0, scrollY:0, windowWidth:document.documentElement.clientWidth, windowHeight:document.documentElement.clientHeight });
+      el.setAttribute('style', origCss);
+      if (!canvas || canvas.width === 0) throw new Error('Canvas empty: ' + pid);
+      const imgW = pageW;
+      const imgH = imgW * (canvas.height / canvas.width);
+      const imgData = canvas.toDataURL('image/jpeg', 0.97);
+      if (!firstPage) pdf.addPage();
+      firstPage = false;
+      pdf.addImage(imgData, 'JPEG', 0, 0, imgW, imgH, undefined, 'FAST');
+      let remaining = imgH - pageH, yOff = -pageH;
+      while (remaining > 2) { pdf.addPage(); pdf.addImage(imgData, 'JPEG', 0, yOff, imgW, imgH, undefined, 'FAST'); remaining -= pageH; yOff -= pageH; }
+    }
+    downloadBlob(pdf.output('blob'), filename);
+  } catch (err) {
+    console.error('PDF hatası:', err);
+    showToast('Hata: ' + (err.message || 'PDF oluşturulamadı'));
+  } finally {
+    window.scrollTo(origSX, origSY);
+    btn.disabled = false;
+    btn.innerHTML = origHTML;
   }
 }
 
