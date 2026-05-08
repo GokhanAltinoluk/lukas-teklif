@@ -730,6 +730,7 @@ body {
 .pdf-pg .sign-row { margin-top: auto; flex-shrink: 0; display: grid; grid-template-columns: 1fr 1fr 96px; gap: 14px; align-items: flex-start; padding-bottom: 6px; }
 .pdf-pg .sign-line { height: 36px; border-bottom: 0.75px solid var(--rule); margin-top: 5px; }
 .pdf-pg .sign-img { display: block; height: 84px; max-width: 100%; object-fit: contain; object-position: left center; margin-top: 4px; }
+.pdf-pg .sign-spacer { display: block; height: 88px; } /* 84px img + 4px margin-top */
 .pdf-pg .totals.has-discount > div.last { grid-column: 1 / -1; }
 .pdf-pg .sign-name { font-family: var(--sans); font-weight: 500; font-size: 10px; margin-top: 5px; }
 .pdf-pg .qr-box { border: 0.75px solid var(--rule); padding: 4px; background: #fff; }
@@ -1150,6 +1151,7 @@ body {
       </div>
       <div>
         <div class="label-sm">MÜŞTERİ · ONAY</div>
+        <div class="sign-spacer"></div>
         <div class="sign-line"></div>
         <div class="sign-name" id="p0-sign-client">—</div>
       </div>
@@ -1216,6 +1218,7 @@ body {
       </div>
       <div>
         <div class="label-sm">MÜŞTERİ · ONAY</div>
+        <div class="sign-spacer"></div>
         <div class="sign-line"></div>
         <div class="sign-name" id="p1-sign-client">—</div>
       </div>
@@ -1285,6 +1288,7 @@ body {
       </div>
       <div>
         <div class="label-sm">MÜŞTERİ · ONAY</div>
+        <div class="sign-spacer"></div>
         <div class="sign-line"></div>
         <div class="sign-name" id="p2-sign-client">—</div>
       </div>
@@ -1363,6 +1367,7 @@ body {
       </div>
       <div>
         <div class="label-sm">MÜŞTERİ · ONAY</div>
+        <div class="sign-spacer"></div>
         <div class="sign-line"></div>
         <div class="sign-name" id="p3-sign-client">—</div>
       </div>
