@@ -1540,11 +1540,14 @@ function toggleCatalog() {
   }
 }
 
+let _catalogFlat = [];
+
 function renderCatalog(query) {
   const list = document.getElementById('js-catalog-list');
   const q = query.trim().toLowerCase();
   let html = '';
   let any = false;
+  _catalogFlat = [];
   catalog.forEach(cat => {
     const matched = q
       ? cat.items.filter(it => it.desc.toLowerCase().includes(q))
@@ -1553,8 +1556,10 @@ function renderCatalog(query) {
     any = true;
     html += `<div class="catalog-cat__hd">${esc(cat.cat)}</div>`;
     matched.forEach(it => {
+      const idx = _catalogFlat.length;
+      _catalogFlat.push(it);
       const priceStr = it.price.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      html += `<div class="catalog-item" onclick="addCatalogItem(${JSON.stringify(it.desc)},${JSON.stringify(it.unit)},${it.price})">
+      html += `<div class="catalog-item" data-cidx="${idx}">
         <span class="catalog-item__desc">${esc(it.desc)}</span>
         <span class="catalog-item__meta">${it.unit}</span>
         <span class="catalog-item__price">₺${priceStr}</span>
@@ -1564,6 +1569,12 @@ function renderCatalog(query) {
   });
   if (!any) html = `<div class="catalog-empty">Sonuç bulunamadı.</div>`;
   list.innerHTML = html;
+  list.onclick = e => {
+    const row = e.target.closest('[data-cidx]');
+    if (!row) return;
+    const it = _catalogFlat[+row.dataset.cidx];
+    if (it) addCatalogItem(it.desc, it.unit, it.price);
+  };
 }
 
 function filterCatalog(val) {
