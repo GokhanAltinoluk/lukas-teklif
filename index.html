@@ -1578,7 +1578,7 @@ function renderCatalog(query) {
       const idx = _catalogFlat.length;
       _catalogFlat.push(it);
       const priceStr = it.price.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      const scopeMap = { m: 'Malzeme + İşçilik', i: 'Sadece İşçilik', nh: 'Nakliye Hariç', nd: 'Nakliye Dahil İşçilik' };
+      const scopeMap = { m: 'Malzeme Dahil İşçilik Hizmetleri', i: 'İşçilik Hizmetleri', nh: 'Nakliye Hariçtir', ndd: 'Nakliye Dahildir', nd: 'Nakliye Dahil İşçilik Hizmetleri' };
       const scopeLabel = scopeMap[it.scope] || '';
       const scopeHtml = scopeLabel ? `<span class="catalog-item__scope catalog-item__scope--${it.scope}">${scopeLabel}</span>` : '';
       html += `<div class="catalog-item" data-cidx="${idx}">
@@ -1642,7 +1642,7 @@ function renderItems() {
   items.forEach(it => {
     const row = document.createElement('div');
     row.className = 'item-row';
-    const scopeOpts = [['','—'],['m','Mlz+İşç.'],['i','Sdc.İşç.'],['nh','Nav.Hariç'],['nd','Nav.Dahil']];
+    const scopeOpts = [['','—'],['m','Mlz+İşç.'],['i','İşçilik'],['nh','Nav.Hariçtir'],['ndd','Nav.Dahildir'],['nd','Nav.D+İşç.']];
     row.innerHTML = `
       <input class="item-input" type="text" placeholder="Hizmet / ürün açıklaması"
         value="${esc(it.desc)}"
@@ -1812,11 +1812,11 @@ function populatePDF() {
     rowIdx++;
     const row = document.createElement('div');
     row.className = 'trow';
-    const scopeFullMap = { m: 'Malzeme + İşçilik', i: 'Sadece İşçilik', nh: 'Nakliye Hariç', nd: 'Nakliye Dahil İşçilik' };
+    const scopeFullMap = { m: 'Malzeme Dahil İşçilik Hizmetleri', i: 'İşçilik Hizmetleri', nh: 'Nakliye Hariçtir', ndd: 'Nakliye Dahildir', nd: 'Nakliye Dahil İşçilik Hizmetleri' };
     const detailLabel = it.scope ? scopeFullMap[it.scope] || '' : '';
     row.innerHTML = `
       <div class="code">${code}</div>
-      <div><div class="title">${esc(it.desc || '—')}</div>${detailLabel ? `<div class="detail-sub">DETAIL: ${detailLabel}</div>` : ''}</div>
+      <div><div class="title">${esc(it.desc || '—')}</div>${detailLabel ? `<div class="detail-sub">${detailLabel}</div>` : ''}</div>
       <div class="num">${(it.qty||0).toLocaleString('tr-TR')} <span class="qty-unit">${it.unit||'ad'}</span></div>
       <div class="num muted">${fmt(it.price||0, cur)}</div>
       <div class="num bold">${fmt(line, cur)}</div>`;
@@ -1899,9 +1899,9 @@ function populatePDF() {
     p0Idx++;
     const row = document.createElement('div');
     row.className = 'trow';
-    const p0ScopeMap = { m: 'Malzeme + İşçilik', i: 'Sadece İşçilik', nh: 'Nakliye Hariç', nd: 'Nakliye Dahil İşçilik' };
+    const p0ScopeMap = { m: 'Malzeme Dahil İşçilik Hizmetleri', i: 'İşçilik Hizmetleri', nh: 'Nakliye Hariçtir', ndd: 'Nakliye Dahildir', nd: 'Nakliye Dahil İşçilik Hizmetleri' };
     const p0Detail = it.scope ? p0ScopeMap[it.scope] || '' : '';
-    row.innerHTML = `<div class="code">${code}</div><div><div class="title">${esc(it.desc||'—')}</div>${p0Detail ? `<div class="detail-sub">DETAIL: ${p0Detail}</div>` : ''}</div><div class="num">${(it.qty||0).toLocaleString('tr-TR')} <span class="qty-unit">${it.unit||'ad'}</span></div><div class="num muted">${fmt(it.price||0,cur)}</div><div class="num bold">${fmt(line,cur)}</div>`;
+    row.innerHTML = `<div class="code">${code}</div><div><div class="title">${esc(it.desc||'—')}</div>${p0Detail ? `<div class="detail-sub">${p0Detail}</div>` : ''}</div><div class="num">${(it.qty||0).toLocaleString('tr-TR')} <span class="qty-unit">${it.unit||'ad'}</span></div><div class="num muted">${fmt(it.price||0,cur)}</div><div class="num bold">${fmt(line,cur)}</div>`;
     p0tbody.appendChild(row);
   });
   setHtml('p0-subtotal', `${fmtN(subtotal)} <span class="u">${cur}</span>`);
