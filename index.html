@@ -680,6 +680,10 @@ body {
 
 /* --- COVER PAGE --- */
 .pdf-pg .cover-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.pdf-pg .cover-top { display: grid; grid-template-columns: 1fr 200px; gap: 20px; align-items: start; }
+.pdf-pg .cover-photo-box { width: 200px; height: 200px; border: 0.75px solid var(--rule); overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.pdf-pg .cover-photo-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pdf-pg .cover-photo-placeholder { font-family: var(--mono); font-size: 7.5px; letter-spacing: 0.18em; color: var(--ink3); text-transform: uppercase; }
 .pdf-pg .big-num { font-family: var(--sans); font-weight: 200; font-size: 240px; line-height: 0.82; letter-spacing: -0.05em; color: var(--ink); }
 .pdf-pg .cover-title { font-family: var(--sans); font-weight: 300; font-size: 30px; line-height: 1.05; letter-spacing: -0.02em; }
 .pdf-pg .cover-loc { font-family: var(--mono); font-size: 10px; color: var(--ink2); margin-top: 3px; letter-spacing: 0.06em; }
@@ -857,7 +861,29 @@ body {
     </div>
   </section>
 
-  <!-- 3 · Kalemler -->
+  <!-- 3 · Kapak Fotoğrafı -->
+  <section>
+    <div class="section__label">Kapak Fotoğrafı</div>
+    <div class="card" style="padding:16px">
+      <div style="display:flex;gap:16px;align-items:flex-start">
+        <div id="js-cover-photo-drop" style="width:120px;height:120px;border:1.5px dashed var(--border);border-radius:8px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative" onclick="document.getElementById('js-cover-photo-input').click()">
+          <img id="js-cover-photo-preview" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0">
+          <span id="js-cover-photo-placeholder" style="font-size:10px;color:var(--text-3);text-align:center;line-height:1.4;padding:8px">Fotoğraf<br>Ekle</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;justify-content:center;padding-top:4px">
+          <input id="js-cover-photo-input" type="file" accept="image/*" style="display:none" onchange="onCoverPhotoUpload(this)">
+          <button class="btn btn--ghost" style="width:fit-content" onclick="document.getElementById('js-cover-photo-input').click()" type="button">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Görsel Yükle
+          </button>
+          <button class="btn btn--ghost" style="width:fit-content;color:var(--danger)" onclick="removeCoverPhoto()" type="button">Kaldır</button>
+          <span style="font-size:11px;color:var(--text-3)">Kapak sayfasında teklif kodu yanında görünür</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · Kalemler -->
   <section>
     <div class="section__label">Ürün / Hizmetler</div>
     <div class="items-wrap">
@@ -1085,7 +1111,13 @@ body {
       <div class="label-sm">[01] · FİYAT TEKLİFİ</div>
       <div class="label-sm" id="p0-rev-label">REV. A · —</div>
     </div>
-    <div class="big-num" id="p0-doc-num">001</div>
+    <div class="cover-top">
+      <div class="big-num" id="p0-doc-num">001</div>
+      <div class="cover-photo-box" id="p0-photo-box">
+        <img id="p0-cover-photo" src="" alt="" style="display:none">
+        <span class="cover-photo-placeholder" id="p0-photo-lbl">ÜRÜN FOTOĞRAFI</span>
+      </div>
+    </div>
     <div class="cover-title" id="p0-title">—</div>
     <div class="spec-grid">
       <div class="spec-cell">
@@ -1210,7 +1242,13 @@ body {
       <div class="label-sm">[01] · COVER SHEET</div>
       <div class="label-sm" id="p1-rev-label">REV. A · —</div>
     </div>
-    <div class="big-num" id="p1-doc-num">001</div>
+    <div class="cover-top">
+      <div class="big-num" id="p1-doc-num">001</div>
+      <div class="cover-photo-box" id="p1-photo-box">
+        <img id="p1-cover-photo" src="" alt="" style="display:none">
+        <span class="cover-photo-placeholder" id="p1-photo-lbl">ÜRÜN FOTOĞRAFI</span>
+      </div>
+    </div>
     <div class="cover-title" id="p1-title">—</div>
     <div class="cover-loc" id="p1-loc"></div>
     <div class="spec-grid">
@@ -1415,6 +1453,30 @@ let quoteNum = '';
 let pdfFormat = 'auto';
 let currentRate = 1;
 const _rateCache = {};
+let coverPhoto = null;
+
+function onCoverPhotoUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    coverPhoto = e.target.result;
+    const preview = document.getElementById('js-cover-photo-preview');
+    if (preview) { preview.src = coverPhoto; preview.style.display = 'block'; }
+    const placeholder = document.getElementById('js-cover-photo-placeholder');
+    if (placeholder) placeholder.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeCoverPhoto() {
+  coverPhoto = null;
+  const preview = document.getElementById('js-cover-photo-preview');
+  if (preview) { preview.src = ''; preview.style.display = 'none'; }
+  const placeholder = document.getElementById('js-cover-photo-placeholder');
+  if (placeholder) placeholder.style.display = '';
+  document.getElementById('js-cover-photo-input').value = '';
+}
 
 function setFmt(fmt, btn) {
   pdfFormat = fmt;
@@ -1823,6 +1885,19 @@ function updateTotals() {
 }
 
 function populatePDF() {
+  ['p0','p1'].forEach(pg => {
+    const img = document.getElementById(`${pg}-cover-photo`);
+    const lbl = document.getElementById(`${pg}-photo-lbl`);
+    if (!img) return;
+    if (coverPhoto) {
+      img.src = coverPhoto; img.style.display = 'block';
+      if (lbl) lbl.style.display = 'none';
+    } else {
+      img.style.display = 'none';
+      if (lbl) lbl.style.display = '';
+    }
+  });
+
   const cur       = document.getElementById('f-currency').value;
   const taxRate   = parseFloat(document.getElementById('f-tax').value) || 0;
   const dateVal   = document.getElementById('f-date').value;
@@ -2214,6 +2289,7 @@ function resetForm() {
   currentRate = 1;
   const rateEl = document.getElementById('js-rate-info');
   if (rateEl) rateEl.textContent = '';
+  removeCoverPhoto();
   document.getElementById('f-validity').value = '30';
   document.getElementById('f-rev').value       = 'A';
   document.getElementById('f-pay1-pct').value   = '50';
