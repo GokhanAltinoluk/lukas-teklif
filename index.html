@@ -201,7 +201,7 @@ body {
 
 .items-head {
   display: grid;
-  grid-template-columns: 1fr 50px 70px 96px 34px;
+  grid-template-columns: 1fr 100px 44px 60px 84px 28px;
   gap: 8px;
   padding: 9px 16px;
   background: var(--surface-2);
@@ -219,7 +219,7 @@ body {
 
 .item-row {
   display: grid;
-  grid-template-columns: 1fr 50px 70px 96px 34px;
+  grid-template-columns: 1fr 100px 44px 60px 84px 28px;
   gap: 8px;
   padding: 10px 16px;
   align-items: center;
@@ -577,7 +577,7 @@ body {
 
 @media (max-width: 460px) {
   .items-head,
-  .item-row { grid-template-columns: 1fr 44px 60px 82px 26px; gap: 4px; }
+  .item-row { grid-template-columns: 1fr 78px 38px 52px 70px 22px; gap: 4px; }
 
   .field--2col { grid-template-columns: 1fr; }
   .field--2col .field:first-child {
@@ -694,6 +694,7 @@ body {
 .pdf-pg .trow > div:last-child { border-right: none; }
 .pdf-pg .trow .code { font-family: var(--mono); font-size: 9px; color: var(--accent); font-weight: 500; }
 .pdf-pg .trow .title { font-family: var(--sans); font-size: 11px; font-weight: 600; line-height: 1.2; }
+.pdf-pg .trow .detail-sub { font-family: var(--sans); font-size: 8.5px; font-weight: 400; color: var(--ink2); margin-top: 2px; letter-spacing: .02em; }
 .pdf-pg .trow .num { text-align: right; font-family: var(--mono); font-size: 9.5px; }
 .pdf-pg .trow .num.muted { color: var(--ink2); }
 .pdf-pg .trow .num.bold  { font-weight: 600; }
@@ -845,6 +846,7 @@ body {
     <div class="items-wrap">
       <div class="items-head">
         <span class="items-head__col">Açıklama</span>
+        <span class="items-head__col">Detay</span>
         <span class="items-head__col items-head__col--r">Adet</span>
         <span class="items-head__col items-head__col--r">Birim</span>
         <span class="items-head__col items-head__col--r">Birim Fiyat</span>
@@ -1596,7 +1598,7 @@ function renderCatalog(query) {
     const row = e.target.closest('[data-cidx]');
     if (!row) return;
     const it = _catalogFlat[+row.dataset.cidx];
-    if (it) addCatalogItem(it.desc, it.unit, it.price);
+    if (it) addCatalogItem(it.desc, it.unit, it.price, it.scope);
   };
 }
 
@@ -1604,8 +1606,8 @@ function filterCatalog(val) {
   renderCatalog(val);
 }
 
-function addCatalogItem(desc, unit, price) {
-  items.push({ id: nextId++, desc, qty: 1, unit, price });
+function addCatalogItem(desc, unit, price, scope) {
+  items.push({ id: nextId++, desc, qty: 1, unit, price, scope: scope || '' });
   renderItems();
   updateTotals();
   showToast('Eklendi: ' + desc.substring(0, 30) + (desc.length > 30 ? '…' : ''));
@@ -1615,7 +1617,7 @@ function addCatalogItem(desc, unit, price) {
    ITEMS
 ═══════════════════════════════════════════ */
 function addItem() {
-  items.push({ id: nextId++, desc: '', qty: 1, unit: 'ad', price: 0 });
+  items.push({ id: nextId++, desc: '', qty: 1, unit: 'ad', price: 0, scope: '' });
   renderItems();
 }
 
@@ -1640,10 +1642,14 @@ function renderItems() {
   items.forEach(it => {
     const row = document.createElement('div');
     row.className = 'item-row';
+    const scopeOpts = [['','—'],['m','Mlz+İşç.'],['i','Sdc.İşç.'],['nh','Nav.Hariç'],['nd','Nav.Dahil']];
     row.innerHTML = `
       <input class="item-input" type="text" placeholder="Hizmet / ürün açıklaması"
         value="${esc(it.desc)}"
         oninput="setItem(${it.id},'desc',this.value)">
+      <select class="item-select" onchange="setItem(${it.id},'scope',this.value)">
+        ${scopeOpts.map(([v,l]) => `<option value="${v}"` + (it.scope===v ? ' selected' : '') + `>${l}</option>`).join('')}
+      </select>
       <input class="item-input item-input--r" type="number" min="0" step="0.01"
         placeholder="1" value="${it.qty || ''}"
         oninput="setItem(${it.id},'qty',this.value)">
@@ -1806,9 +1812,11 @@ function populatePDF() {
     rowIdx++;
     const row = document.createElement('div');
     row.className = 'trow';
+    const scopeFullMap = { m: 'Malzeme + İşçilik', i: 'Sadece İşçilik', nh: 'Nakliye Hariç', nd: 'Nakliye Dahil İşçilik' };
+    const detailLabel = it.scope ? scopeFullMap[it.scope] || '' : '';
     row.innerHTML = `
       <div class="code">${code}</div>
-      <div><div class="title">${esc(it.desc || '—')}</div></div>
+      <div><div class="title">${esc(it.desc || '—')}</div>${detailLabel ? `<div class="detail-sub">DETAIL: ${detailLabel}</div>` : ''}</div>
       <div class="num">${(it.qty||0).toLocaleString('tr-TR')} <span class="qty-unit">${it.unit||'ad'}</span></div>
       <div class="num muted">${fmt(it.price||0, cur)}</div>
       <div class="num bold">${fmt(line, cur)}</div>`;
@@ -1891,7 +1899,9 @@ function populatePDF() {
     p0Idx++;
     const row = document.createElement('div');
     row.className = 'trow';
-    row.innerHTML = `<div class="code">${code}</div><div><div class="title">${esc(it.desc||'—')}</div></div><div class="num">${(it.qty||0).toLocaleString('tr-TR')} <span class="qty-unit">${it.unit||'ad'}</span></div><div class="num muted">${fmt(it.price||0,cur)}</div><div class="num bold">${fmt(line,cur)}</div>`;
+    const p0ScopeMap = { m: 'Malzeme + İşçilik', i: 'Sadece İşçilik', nh: 'Nakliye Hariç', nd: 'Nakliye Dahil İşçilik' };
+    const p0Detail = it.scope ? p0ScopeMap[it.scope] || '' : '';
+    row.innerHTML = `<div class="code">${code}</div><div><div class="title">${esc(it.desc||'—')}</div>${p0Detail ? `<div class="detail-sub">DETAIL: ${p0Detail}</div>` : ''}</div><div class="num">${(it.qty||0).toLocaleString('tr-TR')} <span class="qty-unit">${it.unit||'ad'}</span></div><div class="num muted">${fmt(it.price||0,cur)}</div><div class="num bold">${fmt(line,cur)}</div>`;
     p0tbody.appendChild(row);
   });
   setHtml('p0-subtotal', `${fmtN(subtotal)} <span class="u">${cur}</span>`);
